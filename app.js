@@ -4,7 +4,11 @@ const firstRun = document.getElementById('firstRun');
 function dismissFirstRun() { firstRun.style.display = 'none'; }
 firstRun.addEventListener('click', () => {
   dismissFirstRun();
-  startCamera();
+  if (!trackingStarted) startCamera();
+});
+
+document.getElementById('helpBtn').addEventListener('click', () => {
+  firstRun.style.display = 'flex';
 });
 const canvas = document.getElementById('overlay');
 const ctx = canvas.getContext('2d');
