@@ -1,5 +1,8 @@
 const video = document.getElementById('cam');
 const retry = document.getElementById('retry');
+const firstRun = document.getElementById('firstRun');
+function dismissFirstRun() { firstRun.style.display = 'none'; }
+firstRun.addEventListener('click', dismissFirstRun);
 const canvas = document.getElementById('overlay');
 const ctx = canvas.getContext('2d');
 const fpsEl = document.getElementById('fps');
@@ -47,6 +50,7 @@ function updatePinch(lm) {
 
   if (votedPinch && !pinching) {
     pinching = true;
+    dismissFirstRun();
     if (!currentColor) currentColor = COLORS[Math.floor(Math.random() * COLORS.length)];
     currentStroke = { color: currentColor, points: [] };
     strokes.push(currentStroke);

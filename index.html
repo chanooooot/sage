@@ -51,37 +51,64 @@
     border: none;
     background: #4ade80;
   }
-  #aliveBtn, #recordBtn, #clearBtn {
+  #bottomBar {
     position: fixed;
-    bottom: 24px;
+    left: 0; right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+    z-index: 10;
+  }
+  #bottomBar button {
     padding: 10px 18px;
     font-size: 15px;
     border-radius: 20px;
     border: none;
     background: rgba(255,255,255,0.85);
-    z-index: 10;
   }
-  #aliveBtn { left: calc(50% - 145px); }
-  #recordBtn { left: calc(50% - 45px); }
   #recordBtn.recording { background: #ff5252; color: #fff; }
-  #clearBtn { left: calc(50% + 65px); }
+  #firstRun {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    color: #fff;
+    font-family: system-ui, sans-serif;
+    text-align: center;
+    padding: 24px;
+    background: rgba(0,0,0,0.55);
+  }
+  #firstRun .icons { font-size: 40px; letter-spacing: 24px; }
+  #firstRun p { font-size: 18px; line-height: 1.6; max-width: 320px; }
 </style>
 </head>
 <body>
   <video id="cam" autoplay playsinline muted></video>
   <canvas id="overlay"></canvas>
   <div id="fps"></div>
-  <button id="aliveBtn">✨ Alive</button>
-  <button id="recordBtn">⏺ Record</button>
-  <button id="clearBtn">🗑 Clear</button>
+  <div id="bottomBar">
+    <button id="aliveBtn">✨ Alive</button>
+    <button id="recordBtn">⏺ Record</button>
+    <button id="clearBtn">🗑 Clear</button>
+  </div>
+  <div id="firstRun">
+    <div class="icons">📱🤏✊</div>
+    <p>Prop your phone up.<br>Pinch (thumb + finger) to draw.<br>Make a fist to bring it to life.</p>
+  </div>
   <div id="retry">
-    <p>Camera access denied or unavailable.<br>AirToon needs your front camera to work.</p>
+    <p>Camera access denied or unavailable.<br>AirToon needs your front camera to see your hand — please allow it and try again.</p>
     <button id="retryBtn">Try Again</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
