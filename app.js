@@ -315,7 +315,12 @@ function startHandTracking() {
       const lm = lastResults.multiHandLandmarks[0];
       updatePinch(lm);
       addPoint(lm);
-      if (!pinching) checkOpenPalm(lm);
+      if (pinching) {
+        palmOpenSince = null;
+        palmTriggered = false;
+      } else {
+        checkOpenPalm(lm);
+      }
 
       const tipX = lm[8].x * canvas.width, tipY = lm[8].y * canvas.height;
       const palmX = (lm[0].x + lm[9].x) / 2 * canvas.width, palmY = (lm[0].y + lm[9].y) / 2 * canvas.height;
@@ -342,7 +347,7 @@ function startHandTracking() {
     frames++;
     const now = performance.now();
     if (now - lastFpsTime >= 1000) {
-      if (debug) fpsEl.textContent = `${frames} fps | norm ${lastNorm.toFixed(2)}`;
+      if (debug) fpsEl.textContent = `${frames} fps | norm ${lastNorm.toFixed(2)} | pinch ${pinching} | palm ${palmOpenSince ? ((performance.now() - palmOpenSince) / 1000).toFixed(1) : '-'}`;
       frames = 0;
       lastFpsTime = now;
     }
