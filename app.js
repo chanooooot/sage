@@ -1,3 +1,56 @@
+// --- app icon (drawn on canvas, no image asset needed) ---
+(function setupAppIcon() {
+  const size = 192;
+  const ic = document.createElement('canvas');
+  ic.width = size; ic.height = size;
+  const ictx = ic.getContext('2d');
+
+  const grad = ictx.createLinearGradient(0, 0, size, size);
+  grad.addColorStop(0, '#F97316');
+  grad.addColorStop(1, '#7C3AED');
+  const r = 40;
+  ictx.fillStyle = grad;
+  ictx.beginPath();
+  ictx.moveTo(r, 0);
+  ictx.arcTo(size, 0, size, size, r);
+  ictx.arcTo(size, size, 0, size, r);
+  ictx.arcTo(0, size, 0, 0, r);
+  ictx.arcTo(0, 0, size, 0, r);
+  ictx.closePath();
+  ictx.fill();
+
+  // simple doodle face: two eyes + smile, matches the in-app creature look
+  ictx.fillStyle = '#fff';
+  ictx.beginPath(); ictx.arc(66, 76, 16, 0, Math.PI * 2); ictx.fill();
+  ictx.beginPath(); ictx.arc(126, 76, 16, 0, Math.PI * 2); ictx.fill();
+  ictx.fillStyle = '#1F2937';
+  ictx.beginPath(); ictx.arc(70, 76, 7, 0, Math.PI * 2); ictx.fill();
+  ictx.beginPath(); ictx.arc(122, 76, 7, 0, Math.PI * 2); ictx.fill();
+  ictx.strokeStyle = '#fff';
+  ictx.lineWidth = 8;
+  ictx.lineCap = 'round';
+  ictx.beginPath();
+  ictx.moveTo(66, 128);
+  ictx.quadraticCurveTo(96, 148, 126, 128);
+  ictx.stroke();
+
+  const dataUrl = ic.toDataURL('image/png');
+  document.getElementById('favicon').href = dataUrl;
+  document.getElementById('appleIcon').href = dataUrl;
+
+  const manifest = {
+    name: 'AirDoodle',
+    short_name: 'AirDoodle',
+    start_url: '.',
+    display: 'standalone',
+    background_color: '#000000',
+    theme_color: '#7C3AED',
+    icons: [{ src: dataUrl, sizes: '192x192', type: 'image/png' }]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  document.getElementById('manifestLink').href = URL.createObjectURL(manifestBlob);
+})();
+
 const video = document.getElementById('cam');
 const retry = document.getElementById('retry');
 const firstRun = document.getElementById('firstRun');
