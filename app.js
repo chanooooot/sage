@@ -224,21 +224,21 @@ Matter.Events.on(engine, 'collisionStart', (evt) => {
 document.getElementById('aliveBtn').addEventListener('click', bringAlive);
 
 // fist-1s detection (alive trigger)
-let palmOpenSince = null;
-let palmTriggered = false;
+let fistSince = null;
+let fistTriggered = false;
 function fingerExtended(lm, tipIdx, pipIdx) {
   const wrist = lm[0];
   return dist(wrist, lm[tipIdx]) > dist(wrist, lm[pipIdx]) * 1.15;
 }
 const FIST_HOLD_MS = 600;
 
-function checkOpenPalm(lm) {
+function checkFist(lm) {
   const fist = !fingerExtended(lm, 8, 6) && !fingerExtended(lm, 12, 10) &&
                !fingerExtended(lm, 16, 14) && !fingerExtended(lm, 20, 18);
   const now = performance.now();
   if (fist) {
-    if (palmOpenSince === null) palmOpenSince = now;
-    const progress = Math.min(1, (now - palmOpenSince) / FIST_HOLD_MS);
+    if (fistSince === null) fistSince = now;
+    const progress = Math.min(1, (now - fistSince) / FIST_HOLD_MS);
     if (progress > 0 && progress < 1) {
       const cx = (lm[0].x + lm[9].x) / 2 * canvas.width;
       const cy = (lm[0].y + lm[9].y) / 2 * canvas.height;
@@ -251,13 +251,13 @@ function checkOpenPalm(lm) {
       ctx.stroke();
       ctx.restore();
     }
-    if (!palmTriggered && progress >= 1) {
-      palmTriggered = true;
+    if (!fistTriggered && progress >= 1) {
+      fistTriggered = true;
       bringAlive();
     }
   } else {
-    palmOpenSince = null;
-    palmTriggered = false;
+    fistSince = null;
+    fistTriggered = false;
   }
 }
 
@@ -421,20 +421,22 @@ function startHandTracking() {
 
   let frames = 0;
   let lastFpsTime = performance.now();
+  const colorSwatch = document.getElementById('colorSwatch');
 
   function render() {
     resizeCanvas();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    colorSwatch.style.background = currentColor || 'transparent';
 
     if (lastResults && lastResults.multiHandLandmarks.length) {
       const lm = lastResults.multiHandLandmarks[0];
       updatePinch(lm);
       addPoint(lm);
       if (pinching) {
-        palmOpenSince = null;
-        palmTriggered = false;
+        fistSince = null;
+        fistTriggered = false;
       } else {
-        checkOpenPalm(lm);
+        checkFist(lm);
       }
 
       const tipX = lm[8].x * canvas.width, tipY = lm[8].y * canvas.height;
@@ -463,7 +465,7 @@ function startHandTracking() {
     frames++;
     const now = performance.now();
     if (now - lastFpsTime >= 1000) {
-      if (debug) fpsEl.textContent = `${frames} fps | norm ${lastNorm.toFixed(2)} | pinch ${pinching} | palm ${palmOpenSince ? ((performance.now() - palmOpenSince) / 1000).toFixed(1) : '-'}`;
+      if (debug) fpsEl.textContent = `${frames} fps | norm ${lastNorm.toFixed(2)} | pinch ${pinching} | fist ${fistSince ? ((performance.now() - fistSince) / 1000).toFixed(1) : '-'}`;
       frames = 0;
       lastFpsTime = now;
     }
