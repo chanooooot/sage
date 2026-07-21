@@ -102,8 +102,8 @@ function setupWalls() {
   Matter.World.add(world, walls);
 }
 
-const fingerBody = Matter.Bodies.circle(0, 0, 14, { isStatic: true, label: 'hand' });
-const palmBody = Matter.Bodies.circle(0, 0, 30, { isStatic: true, label: 'hand' });
+const fingerBody = Matter.Bodies.circle(0, 0, 26, { isStatic: true, label: 'hand' });
+const palmBody = Matter.Bodies.circle(0, 0, 45, { isStatic: true, label: 'hand' });
 Matter.World.add(world, [fingerBody, palmBody]);
 
 setInterval(() => Matter.Engine.update(engine, 1000 / 30), 1000 / 30);
