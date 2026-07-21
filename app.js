@@ -79,6 +79,8 @@ function updatePinch(lm) {
   }
 }
 
+const MAX_STROKE_POINTS = 2000;
+
 function addPoint(lm) {
   if (!pinching || !currentStroke) return;
   const raw = { x: lm[8].x * canvas.width, y: lm[8].y * canvas.height };
@@ -86,6 +88,14 @@ function addPoint(lm) {
   const last = pts[pts.length - 1];
   const smoothed = last ? { x: last.x * 0.5 + raw.x * 0.5, y: last.y * 0.5 + raw.y * 0.5 } : raw;
   pts.push(smoothed);
+
+  let total = strokes.reduce((sum, s) => sum + s.points.length, 0);
+  while (total > MAX_STROKE_POINTS && strokes.length) {
+    const oldest = strokes[0];
+    oldest.points.shift();
+    total--;
+    if (!oldest.points.length && oldest !== currentStroke) strokes.shift();
+  }
 }
 
 function drawStrokes() {
@@ -276,6 +286,7 @@ function drawCreatures() {
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.arc(c.body.position.x, c.body.position.y, c.body.circleRadius * (0.4 + 1.3 * burstT), 0, Math.PI * 2);
+      ctx.stroke();
       ctx.restore();
     }
 
