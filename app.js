@@ -32,10 +32,13 @@ function dist(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
+let lastNorm = 0;
+
 function updatePinch(lm) {
   const pinchDist = dist(lm[4], lm[8]);
   const handScale = dist(lm[0], lm[5]) || 1;
   const norm = pinchDist / handScale;
+  lastNorm = norm;
   const rawPinch = pinching ? norm < PINCH_OFF : norm < PINCH_ON;
 
   pinchVotes.push(rawPinch);
@@ -147,7 +150,7 @@ function startHandTracking() {
     frames++;
     const now = performance.now();
     if (now - lastFpsTime >= 1000) {
-      if (debug) fpsEl.textContent = `${frames} fps`;
+      if (debug) fpsEl.textContent = `${frames} fps | norm ${lastNorm.toFixed(2)}`;
       frames = 0;
       lastFpsTime = now;
     }
