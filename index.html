@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AirToon</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+  }
+  video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* mirror */
+  }
+  #retry {
+    position: fixed;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: #fff;
+    font-family: system-ui, sans-serif;
+    text-align: center;
+    padding: 24px;
+  }
+  #retry button {
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    background: #4ade80;
+  }
+</style>
+</head>
+<body>
+  <video id="cam" autoplay playsinline muted></video>
+  <div id="retry">
+    <p>Camera access denied or unavailable.<br>AirToon needs your front camera to work.</p>
+    <button id="retryBtn">Try Again</button>
+  </div>
+
+  <script>
+    const video = document.getElementById('cam');
+    const retry = document.getElementById('retry');
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: false
+        });
+        video.srcObject = stream;
+        retry.style.display = 'none';
+      } catch (err) {
+        retry.style.display = 'flex';
+      }
+    }
+
+    document.getElementById('retryBtn').addEventListener('click', startCamera);
+    startCamera();
+  </script>
+</body>
+</html>
