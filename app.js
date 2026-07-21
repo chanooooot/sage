@@ -199,7 +199,7 @@ function checkOpenPalm(lm) {
   const now = performance.now();
   if (fist) {
     if (palmOpenSince === null) palmOpenSince = now;
-    if (!palmTriggered && now - palmOpenSince >= 1000) {
+    if (!palmTriggered && now - palmOpenSince >= 600) {
       palmTriggered = true;
       bringAlive();
     }
@@ -232,13 +232,29 @@ function drawCreatures() {
     const scaleY = startled ? 0.85 : breathe;
     const scaleX = startled ? 1.15 : 1;
 
+    const spawnT = Math.min(1, (now - c.born) / 350);
+    const pop = spawnT < 1 ? 1 - Math.pow(1 - spawnT, 3) : 1; // ease-out pop-in
+
+    if (spawnT < 1) {
+      ctx.save();
+      ctx.globalAlpha = (1 - spawnT) * Math.max(0, c.opacity);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(c.body.position.x, c.body.position.y, c.body.circleRadius * (0.3 + 1.2 * spawnT), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     ctx.save();
     ctx.globalAlpha = Math.max(0, c.opacity);
     ctx.translate(c.body.position.x, c.body.position.y);
     ctx.rotate(c.body.angle + wiggle);
-    ctx.scale(scaleX, scaleY);
+    ctx.scale(scaleX * pop, scaleY * pop);
     ctx.drawImage(c.sprite, -c.w / 2, -c.h / 2);
     ctx.restore();
+
+    if (spawnT < 0.3) continue; // eyes appear once pop-in is mostly done
 
     // eyes: upper third of sprite bounds, in world space
     const eyeY = c.body.position.y - c.h / 2 + c.h / 6;

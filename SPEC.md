@@ -26,7 +26,7 @@
 | D3 | Platform | Mobile-first (portrait, front camera, mirrored) | Ham's call. Constraints accepted: phone must be propped; MediaPipe lite model; capped physics. Desktop = should still work but untested/unoptimized in v1. |
 | D4 | Draw gesture | Pinch = pen down/up | Reliable in MediaPipe (fact); enables multi-stroke; no screen touching. |
 | D5 | Hands tracked | ONE hand only | Two-hand tracking ~halves mobile frame rate (fact); hands occlude on narrow front cam. |
-| D6 | "Alive" trigger | Closed fist held ~1s + fallback on-screen button | Changed from open palm during P3 testing — open palm false-triggered during pinch/draw (relaxed fingers read as extended). Fist is more distinct from the pinch pose. |
+| D6 | "Alive" trigger | Closed fist held ~0.6s + fallback on-screen button | Changed from open palm during P3 testing — open palm false-triggered during pinch/draw (relaxed fingers read as extended). Fist is more distinct from the pinch pose. Hold time tuned down from 1s to 0.6s for responsiveness; spawn pop+flash effect added so "alive" moment reads clearly despite shorter hold. |
 | D7 | Creature cap | 3, oldest fades out | Mobile perf budget (physics + tracking). |
 | D8 | Share | 15s video recording via MediaRecorder + Web Share API | Screenshot loses the animation (the whole point). iOS Safari risk accepted — see §6. |
 | D9 | Stack | Vanilla JS, single HTML page, MediaPipe Hands (lite), matter.js, GitHub Pages | One render loop; React adds nothing (karpathy: simplicity first). Zero cost. |
