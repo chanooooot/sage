@@ -25,8 +25,8 @@ const COLORS = ['#ff5252', '#ffca28', '#4caf50', '#29b6f6', '#ab47bc', '#ff7043'
 
 let pinchVotes = [];       // last 3 raw pinch booleans (3-frame vote)
 let pinching = false;      // debounced/hysteresis state
-const PINCH_ON = 0.45;     // normalized dist below this = pinch closing
-const PINCH_OFF = 0.6;     // normalized dist above this = pinch open
+const PINCH_ON = 0.3;      // normalized dist below this = pinch closing
+const PINCH_OFF = 0.45;    // normalized dist above this = pinch open
 
 function dist(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
