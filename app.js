@@ -134,6 +134,7 @@ function bboxOfStrokes() {
 
 function bringAlive() {
   if (!strokes.some(s => s.points.length >= 2)) return;
+  if (navigator.vibrate) navigator.vibrate(15);
   const pad = 20;
   const { minX, minY, maxX, maxY } = bboxOfStrokes();
   const w = maxX - minX + pad * 2, h = maxY - minY + pad * 2;
@@ -479,6 +480,7 @@ function stopRecording() {
 }
 
 recordBtn.addEventListener('click', () => {
+  if (navigator.vibrate) navigator.vibrate(10);
   if (recording) stopRecording(); else startRecording();
 });
 

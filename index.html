@@ -4,7 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AirToon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --color-primary: #F97316;
+    --color-primary-dark: #C2410C;
+    --color-accent: #7C3AED;
+    --color-accent-dark: #5B21B6;
+    --color-danger: #EF4444;
+    --color-danger-dark: #B91C1C;
+    --color-ink: #1F2937;
+    font-family: 'Nunito', system-ui, sans-serif;
+  }
   html, body {
     margin: 0;
     padding: 0;
@@ -24,16 +37,35 @@
   body.mirrored video, body.mirrored canvas {
     transform: scaleX(-1); /* mirror, front camera only */
   }
+
+  button {
+    font-family: 'Fredoka', 'Nunito', system-ui, sans-serif;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+  }
+  button:active {
+    transform: scale(0.93);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.25) !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    button { transition: none; }
+    button:active { transform: none; }
+  }
+
   #flipBtn {
     position: fixed;
-    top: 8px;
-    right: 8px;
+    top: max(10px, env(safe-area-inset-top));
+    right: 10px;
     z-index: 10;
-    padding: 8px 12px;
+    width: 44px;
+    height: 44px;
     font-size: 20px;
-    border-radius: 20px;
+    border-radius: 50%;
     border: none;
-    background: rgba(255,255,255,0.85);
+    background: #fff;
+    color: var(--color-ink);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.25);
   }
   #fps {
     position: fixed;
@@ -43,6 +75,7 @@
     font-family: monospace;
     font-size: 14px;
     z-index: 10;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   }
   #retry {
     position: fixed;
@@ -51,18 +84,22 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 20px;
     color: #fff;
-    font-family: system-ui, sans-serif;
     text-align: center;
-    padding: 24px;
+    padding: 32px;
+    background: rgba(15,15,20,0.9);
   }
+  #retry p { font-size: 17px; line-height: 1.6; max-width: 320px; }
   #retry button {
-    padding: 12px 24px;
+    padding: 14px 28px;
     font-size: 16px;
-    border-radius: 8px;
+    font-weight: 600;
+    border-radius: 16px;
     border: none;
-    background: #4ade80;
+    background: var(--color-primary);
+    color: #fff;
+    box-shadow: 0 4px 0 var(--color-primary-dark), 0 4px 12px rgba(0,0,0,0.3);
   }
   #bottomBar {
     position: fixed;
@@ -70,18 +107,40 @@
     bottom: 0;
     display: flex;
     justify-content: center;
-    gap: 12px;
-    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
     z-index: 10;
   }
   #bottomBar button {
+    min-height: 44px;
     padding: 10px 18px;
     font-size: 15px;
-    border-radius: 20px;
+    font-weight: 600;
+    border-radius: 22px;
     border: none;
-    background: rgba(255,255,255,0.85);
+    background: #fff;
+    color: var(--color-ink);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.25);
   }
-  #recordBtn.recording { background: #ff5252; color: #fff; }
+  #aliveBtn {
+    background: var(--color-accent);
+    color: #fff;
+    box-shadow: 0 3px 0 var(--color-accent-dark), 0 2px 6px rgba(0,0,0,0.3);
+  }
+  #recordBtn.recording {
+    background: var(--color-danger);
+    color: #fff;
+    box-shadow: 0 3px 0 var(--color-danger-dark), 0 2px 6px rgba(0,0,0,0.3);
+    animation: recPulse 1s ease-in-out infinite;
+  }
+  @keyframes recPulse {
+    0%, 100% { box-shadow: 0 3px 0 var(--color-danger-dark), 0 2px 6px rgba(0,0,0,0.3); }
+    50% { box-shadow: 0 3px 0 var(--color-danger-dark), 0 2px 16px 4px rgba(239,68,68,0.6); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #recordBtn.recording { animation: none; }
+  }
   #firstRun {
     position: fixed;
     inset: 0;
@@ -92,13 +151,20 @@
     justify-content: center;
     gap: 20px;
     color: #fff;
-    font-family: system-ui, sans-serif;
     text-align: center;
-    padding: 24px;
-    background: rgba(0,0,0,0.55);
+    padding: 32px;
+    background: rgba(15,15,20,0.82);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
   }
-  #firstRun .icons { font-size: 40px; letter-spacing: 24px; }
-  #firstRun p { font-size: 18px; line-height: 1.6; max-width: 320px; }
+  #firstRun .icons { font-size: 44px; letter-spacing: 20px; }
+  #firstRun p {
+    font-size: 18px;
+    line-height: 1.7;
+    max-width: 320px;
+    text-wrap: pretty;
+  }
+  #firstRun .hint { font-size: 14px; opacity: 0.75; font-weight: 400; }
 </style>
 </head>
 <body class="mirrored">
@@ -115,7 +181,7 @@
   <div id="firstRun">
     <div class="icons">📱🤏✊👋</div>
     <p>Prop your phone up.<br>Pinch (thumb + finger) to draw.<br>Make a fist to bring it to life.<br>Bat or poke it with your hand!</p>
-    <p style="font-size:14px;opacity:0.8;">(tap to start camera)</p>
+    <p class="hint">(tap to start camera)</p>
   </div>
   <div id="retry">
     <p>Camera access denied or unavailable.<br>AirToon needs your front camera to see your hand — please allow it and try again.</p>
@@ -125,6 +191,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="app.js?v=18"></script>
+  <script src="app.js?v=19"></script>
 </body>
 </html>
