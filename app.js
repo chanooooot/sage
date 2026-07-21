@@ -552,7 +552,7 @@ function startHandTracking() {
 // --- P4: record & share ---
 const recordBtn = document.getElementById('recordBtn');
 let recording = false;
-let recCanvas, rctx, mediaRecorder, stopTimer, countdownTimer;
+let recCanvas, rctx, mediaRecorder, stopTimer;
 
 function compositeFrame() {
   rctx.save();
@@ -593,7 +593,6 @@ function startRecording() {
   mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
   mediaRecorder.onstop = () => {
     recording = false;
-    clearInterval(countdownTimer);
     recordBtn.textContent = '⏺ Record';
     recordBtn.classList.remove('recording');
     const blob = new Blob(chunks, { type: mimeType });
@@ -601,19 +600,13 @@ function startRecording() {
   };
   mediaRecorder.start();
   recording = true;
+  recordBtn.textContent = '⏹ Stop';
   recordBtn.classList.add('recording');
-  let secondsLeft = 15;
-  recordBtn.textContent = `⏹ ${secondsLeft}s`;
-  countdownTimer = setInterval(() => {
-    secondsLeft--;
-    recordBtn.textContent = `⏹ ${secondsLeft}s`;
-  }, 1000);
   stopTimer = setTimeout(() => stopRecording(), 15000);
 }
 
 function stopRecording() {
   clearTimeout(stopTimer);
-  clearInterval(countdownTimer);
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
 }
 
