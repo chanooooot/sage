@@ -20,7 +20,20 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scaleX(-1); /* mirror */
+  }
+  body.mirrored video, body.mirrored canvas {
+    transform: scaleX(-1); /* mirror, front camera only */
+  }
+  #flipBtn {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+    padding: 8px 12px;
+    font-size: 20px;
+    border-radius: 20px;
+    border: none;
+    background: rgba(255,255,255,0.85);
   }
   #fps {
     position: fixed;
@@ -88,10 +101,11 @@
   #firstRun p { font-size: 18px; line-height: 1.6; max-width: 320px; }
 </style>
 </head>
-<body>
+<body class="mirrored">
   <video id="cam" autoplay playsinline muted></video>
   <canvas id="overlay"></canvas>
   <div id="fps"></div>
+  <button id="flipBtn">🔄</button>
   <div id="bottomBar">
     <button id="aliveBtn">✨ Alive</button>
     <button id="recordBtn">⏺ Record</button>
@@ -110,6 +124,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>

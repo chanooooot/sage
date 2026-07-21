@@ -273,10 +273,13 @@ function drawCreatures() {
   }
 }
 
+let currentFacing = 'user';
+let trackingStarted = false;
+
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user' },
+      video: { facingMode: currentFacing },
       audio: false
     });
     video.srcObject = stream;
@@ -284,12 +287,31 @@ async function startCamera() {
     video.onloadedmetadata = () => {
       resizeCanvas();
       setupWalls();
-      startHandTracking();
+      if (!trackingStarted) {
+        trackingStarted = true;
+        startHandTracking();
+      }
     };
   } catch (err) {
     retry.style.display = 'flex';
   }
 }
+
+async function flipCamera() {
+  currentFacing = currentFacing === 'user' ? 'environment' : 'user';
+  document.body.classList.toggle('mirrored', currentFacing === 'user');
+  if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: currentFacing },
+      audio: false
+    });
+    video.srcObject = stream;
+  } catch (err) {
+    retry.style.display = 'flex';
+  }
+}
+document.getElementById('flipBtn').addEventListener('click', flipCamera);
 
 function startHandTracking() {
   const hands = new Hands({
