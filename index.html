@@ -51,12 +51,25 @@
     border: none;
     background: #4ade80;
   }
+  #clearBtn {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 20px;
+    border: none;
+    background: rgba(255,255,255,0.85);
+    z-index: 10;
+  }
 </style>
 </head>
 <body>
   <video id="cam" autoplay playsinline muted></video>
   <canvas id="overlay"></canvas>
   <div id="fps"></div>
+  <button id="clearBtn">🗑 Clear</button>
   <div id="retry">
     <p>Camera access denied or unavailable.<br>AirToon needs your front camera to work.</p>
     <button id="retryBtn">Try Again</button>
