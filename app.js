@@ -146,9 +146,7 @@ function bringAlive() {
   }
 
   const radius = Math.max(w, h) / 2 * 1.1;
-  const spawnX = (minX + maxX) / 2;
-  const spawnY = -radius - 40; // drop in from above screen
-  const body = Matter.Bodies.circle(spawnX, spawnY, radius, {
+  const body = Matter.Bodies.circle((minX + maxX) / 2, (minY + maxY) / 2, radius, {
     restitution: 0.6, friction: 0.05
   });
   Matter.World.add(world, body);
