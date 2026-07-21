@@ -1,6 +1,8 @@
 const video = document.getElementById('cam');
 const retry = document.getElementById('retry');
 const firstRun = document.getElementById('firstRun');
+const idleHintEl = document.getElementById('idleHint');
+let cameraStartTime = null;
 function dismissFirstRun() { firstRun.style.display = 'none'; }
 firstRun.addEventListener('click', () => {
   dismissFirstRun();
@@ -70,6 +72,7 @@ function updatePinch(lm) {
 
   if (votedPinch && !pinching) {
     pinching = true;
+    idleHintEl.classList.remove('show');
     if (!currentColor) currentColor = COLORS[Math.floor(Math.random() * COLORS.length)];
     currentStroke = { color: currentColor, points: [] };
     strokes.push(currentStroke);
@@ -354,6 +357,17 @@ function drawCreatures() {
           ctx.fill();
         }
       }
+
+      // experimental: procedural smile, lower third of sprite bounds
+      const mouthY = c.h / 2 - c.h / 6;
+      const mouthHalfW = c.w / 8;
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-mouthHalfW, mouthY);
+      ctx.quadraticCurveTo(0, mouthY + (startled ? 2 : 8), mouthHalfW, mouthY);
+      ctx.stroke();
     }
 
     ctx.restore();
@@ -376,6 +390,7 @@ async function startCamera() {
       setupWalls();
       if (!trackingStarted) {
         trackingStarted = true;
+        cameraStartTime = performance.now();
         startHandTracking();
       }
     };
@@ -427,6 +442,12 @@ function startHandTracking() {
     resizeCanvas();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     colorSwatch.style.background = currentColor || 'transparent';
+
+    if (!strokes.length && !creatures.length && cameraStartTime && performance.now() - cameraStartTime > 4000) {
+      idleHintEl.classList.add('show');
+    } else {
+      idleHintEl.classList.remove('show');
+    }
 
     if (lastResults && lastResults.multiHandLandmarks.length) {
       const lm = lastResults.multiHandLandmarks[0];
