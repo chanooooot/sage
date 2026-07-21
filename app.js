@@ -230,13 +230,28 @@ function fingerExtended(lm, tipIdx, pipIdx) {
   const wrist = lm[0];
   return dist(wrist, lm[tipIdx]) > dist(wrist, lm[pipIdx]) * 1.15;
 }
+const FIST_HOLD_MS = 600;
+
 function checkOpenPalm(lm) {
   const fist = !fingerExtended(lm, 8, 6) && !fingerExtended(lm, 12, 10) &&
                !fingerExtended(lm, 16, 14) && !fingerExtended(lm, 20, 18);
   const now = performance.now();
   if (fist) {
     if (palmOpenSince === null) palmOpenSince = now;
-    if (!palmTriggered && now - palmOpenSince >= 600) {
+    const progress = Math.min(1, (now - palmOpenSince) / FIST_HOLD_MS);
+    if (progress > 0 && progress < 1) {
+      const cx = (lm[0].x + lm[9].x) / 2 * canvas.width;
+      const cy = (lm[0].y + lm[9].y) / 2 * canvas.height;
+      ctx.save();
+      ctx.strokeStyle = '#7C3AED';
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 50, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    if (!palmTriggered && progress >= 1) {
       palmTriggered = true;
       bringAlive();
     }
@@ -290,46 +305,58 @@ function drawCreatures() {
       ctx.restore();
     }
 
+    const rot = c.body.angle + wiggle;
+
     ctx.save();
     ctx.globalAlpha = Math.max(0, c.opacity);
     ctx.translate(c.body.position.x, c.body.position.y);
-    ctx.rotate(c.body.angle + wiggle);
+    ctx.rotate(rot);
     ctx.scale(scaleX * pop, scaleY * pop);
     ctx.drawImage(c.sprite, -c.w / 2, -c.h / 2);
-    ctx.restore();
 
-    if (spawnT < 0.3) continue; // eyes appear once pop-in is mostly done
+    if (spawnT >= 0.3) {
+      // eyes: local space (upper third of sprite), so they tumble with the body
+      const eyeY = -c.h / 2 + c.h / 6;
+      const eyeDX = c.w / 5;
+      const blinking = now < c.blinkUntil;
+      const eyeR = startled ? 10 : 7;
 
-    // eyes: upper third of sprite bounds, in world space
-    const eyeY = c.body.position.y - c.h / 2 + c.h / 6;
-    const eyeDX = c.w / 5;
-    const blinking = now < c.blinkUntil;
-    const eyeR = startled ? 10 : 7;
-    for (const side of [-1, 1]) {
-      const ex = c.body.position.x + side * eyeDX;
-      ctx.fillStyle = '#fff';
-      if (blinking) {
-        ctx.fillRect(ex - eyeR, eyeY - 1, eyeR * 2, 2);
-      } else {
-        ctx.beginPath();
-        ctx.arc(ex, eyeY, eyeR, 0, Math.PI * 2);
-        ctx.fill();
-        // pupil looks toward last tracked fingertip
-        let dx = 0, dy = 0;
-        if (lastResults && lastResults.multiHandLandmarks.length) {
-          const tip = lastResults.multiHandLandmarks[0][8];
-          dx = tip.x * canvas.width - ex;
-          dy = tip.y * canvas.height - eyeY;
-          const d = Math.hypot(dx, dy) || 1;
-          dx = (dx / d) * (eyeR * 0.4);
-          dy = (dy / d) * (eyeR * 0.4);
+      // target fingertip, transformed from world space into this creature's local space
+      let targetLocalX = null, targetLocalY = null;
+      if (lastResults && lastResults.multiHandLandmarks.length) {
+        const tip = lastResults.multiHandLandmarks[0][8];
+        const tipX = tip.x * canvas.width - c.body.position.x;
+        const tipY = tip.y * canvas.height - c.body.position.y;
+        targetLocalX = tipX * Math.cos(-rot) - tipY * Math.sin(-rot);
+        targetLocalY = tipX * Math.sin(-rot) + tipY * Math.cos(-rot);
+      }
+
+      for (const side of [-1, 1]) {
+        const ex = side * eyeDX;
+        ctx.fillStyle = '#fff';
+        if (blinking) {
+          ctx.fillRect(ex - eyeR, eyeY - 1, eyeR * 2, 2);
+        } else {
+          ctx.beginPath();
+          ctx.arc(ex, eyeY, eyeR, 0, Math.PI * 2);
+          ctx.fill();
+          let dx = 0, dy = 0;
+          if (targetLocalX !== null) {
+            dx = targetLocalX - ex;
+            dy = targetLocalY - eyeY;
+            const d = Math.hypot(dx, dy) || 1;
+            dx = (dx / d) * (eyeR * 0.4);
+            dy = (dy / d) * (eyeR * 0.4);
+          }
+          ctx.fillStyle = '#000';
+          ctx.beginPath();
+          ctx.arc(ex + dx, eyeY + dy, startled ? 2 : eyeR * 0.4, 0, Math.PI * 2);
+          ctx.fill();
         }
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(ex + dx, eyeY + dy, startled ? 2 : eyeR * 0.4, 0, Math.PI * 2);
-        ctx.fill();
       }
     }
+
+    ctx.restore();
   }
 }
 
@@ -449,7 +476,7 @@ function startHandTracking() {
 // --- P4: record & share ---
 const recordBtn = document.getElementById('recordBtn');
 let recording = false;
-let recCanvas, rctx, mediaRecorder, stopTimer;
+let recCanvas, rctx, mediaRecorder, stopTimer, countdownTimer;
 
 function compositeFrame() {
   rctx.save();
@@ -490,6 +517,7 @@ function startRecording() {
   mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
   mediaRecorder.onstop = () => {
     recording = false;
+    clearInterval(countdownTimer);
     recordBtn.textContent = '⏺ Record';
     recordBtn.classList.remove('recording');
     const blob = new Blob(chunks, { type: mimeType });
@@ -497,13 +525,19 @@ function startRecording() {
   };
   mediaRecorder.start();
   recording = true;
-  recordBtn.textContent = '⏹ Stop';
   recordBtn.classList.add('recording');
+  let secondsLeft = 15;
+  recordBtn.textContent = `⏹ ${secondsLeft}s`;
+  countdownTimer = setInterval(() => {
+    secondsLeft--;
+    recordBtn.textContent = `⏹ ${secondsLeft}s`;
+  }, 1000);
   stopTimer = setTimeout(() => stopRecording(), 15000);
 }
 
 function stopRecording() {
   clearTimeout(stopTimer);
+  clearInterval(countdownTimer);
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
 }
 
