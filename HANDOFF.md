@@ -1,4 +1,4 @@
-# HANDOFF — AirToon
+# HANDOFF — AirDoodle
 
 **Last updated:** 2026-07-22 (post code-review pass)
 **Live URL:** https://chanooooot.github.io/sage/ (repo: chanooooot/sage, public)

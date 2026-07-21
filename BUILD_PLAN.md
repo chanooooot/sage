@@ -1,4 +1,4 @@
-# BUILD_PLAN — AirToon
+# BUILD_PLAN — AirDoodle
 
 Phased. Each phase ends with a verifiable check (karpathy: goal-driven execution). Do NOT start a phase until the previous phase's check passes on a real phone.
 

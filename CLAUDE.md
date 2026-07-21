@@ -1,6 +1,6 @@
-# CLAUDE.md — AirToon
+# CLAUDE.md — AirDoodle
 
-You are building AirToon: a mobile webapp where the user draws a cartoon in the air via front camera (pinch to draw) and it comes alive (physics + procedural animation + hand reactivity).
+You are building AirDoodle: a mobile webapp where the user draws a cartoon in the air via front camera (pinch to draw) and it comes alive (physics + procedural animation + hand reactivity).
 
 **Read SPEC.md (what & why) and BUILD_PLAN.md (how & in what order) before writing any code.** Decisions in SPEC.md §2 are settled — do not relitigate them. If something is genuinely ambiguous or a decision proves technically wrong, STOP and ask Ham; do not silently pick.
 

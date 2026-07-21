@@ -513,7 +513,7 @@ function compositeFrame() {
 async function shareOrDownload(blob, filename) {
   const file = new File([blob], filename, { type: blob.type });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'AirToon' }); return; } catch (e) {}
+    try { await navigator.share({ files: [file], title: 'AirDoodle' }); return; } catch (e) {}
   }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -525,7 +525,7 @@ async function shareOrDownload(blob, filename) {
 function startRecording() {
   if (!window.MediaRecorder) {
     // iOS/unsupported fallback: single screenshot
-    canvas.toBlob((blob) => shareOrDownload(blob, 'airtoon.png'), 'image/png');
+    canvas.toBlob((blob) => shareOrDownload(blob, 'airdoodle.png'), 'image/png');
     return;
   }
   recCanvas = document.createElement('canvas');
@@ -544,7 +544,7 @@ function startRecording() {
     recordBtn.textContent = '⏺ Record';
     recordBtn.classList.remove('recording');
     const blob = new Blob(chunks, { type: mimeType });
-    shareOrDownload(blob, mimeType === 'video/mp4' ? 'airtoon.mp4' : 'airtoon.webm');
+    shareOrDownload(blob, mimeType === 'video/mp4' ? 'airdoodle.mp4' : 'airdoodle.webm');
   };
   mediaRecorder.start();
   recording = true;

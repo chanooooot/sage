@@ -1,4 +1,4 @@
-# SPEC — "AirToon" (working name)
+# SPEC — "AirDoodle" (working name)
 
 **Version:** 1.0 · **Date:** 2026-07-20 · **Owner:** Ham
 **One-liner:** A mobile webapp where you draw a cartoon in the air with your finger (via front camera), and the drawing comes alive — it breathes, grows eyes, hops around, obeys physics, and reacts to your hand.
