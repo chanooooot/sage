@@ -30,8 +30,8 @@
   ictx.lineWidth = 8;
   ictx.lineCap = 'round';
   ictx.beginPath();
-  ictx.moveTo(66, 128);
-  ictx.quadraticCurveTo(96, 148, 126, 128);
+  ictx.moveTo(66, 104);
+  ictx.quadraticCurveTo(96, 122, 126, 104);
   ictx.stroke();
 
   const dataUrl = ic.toDataURL('image/png');
