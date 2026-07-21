@@ -180,7 +180,7 @@ Matter.Events.on(engine, 'collisionStart', (evt) => {
 
 document.getElementById('aliveBtn').addEventListener('click', bringAlive);
 
-// open-palm-1s detection
+// fist-1s detection (alive trigger)
 let palmOpenSince = null;
 let palmTriggered = false;
 function fingerExtended(lm, tipIdx, pipIdx) {
@@ -188,10 +188,10 @@ function fingerExtended(lm, tipIdx, pipIdx) {
   return dist(wrist, lm[tipIdx]) > dist(wrist, lm[pipIdx]) * 1.15;
 }
 function checkOpenPalm(lm) {
-  const open = fingerExtended(lm, 8, 6) && fingerExtended(lm, 12, 10) &&
-               fingerExtended(lm, 16, 14) && fingerExtended(lm, 20, 18);
+  const fist = !fingerExtended(lm, 8, 6) && !fingerExtended(lm, 12, 10) &&
+               !fingerExtended(lm, 16, 14) && !fingerExtended(lm, 20, 18);
   const now = performance.now();
-  if (open) {
+  if (fist) {
     if (palmOpenSince === null) palmOpenSince = now;
     if (!palmTriggered && now - palmOpenSince >= 1000) {
       palmTriggered = true;
