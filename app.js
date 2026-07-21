@@ -343,6 +343,7 @@ function startHandTracking() {
 
     drawStrokes();
     drawCreatures();
+    if (recording) compositeFrame();
 
     frames++;
     const now = performance.now();
@@ -356,6 +357,71 @@ function startHandTracking() {
   }
   render();
 }
+
+// --- P4: record & share ---
+const recordBtn = document.getElementById('recordBtn');
+let recording = false;
+let recCanvas, rctx, mediaRecorder, stopTimer;
+
+function compositeFrame() {
+  rctx.save();
+  rctx.translate(recCanvas.width, 0);
+  rctx.scale(-1, 1);
+  rctx.drawImage(video, 0, 0, recCanvas.width, recCanvas.height);
+  rctx.drawImage(canvas, 0, 0, recCanvas.width, recCanvas.height);
+  rctx.restore();
+}
+
+async function shareOrDownload(blob, filename) {
+  const file = new File([blob], filename, { type: blob.type });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'AirToon' }); return; } catch (e) {}
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+function startRecording() {
+  if (!window.MediaRecorder) {
+    // iOS/unsupported fallback: single screenshot
+    canvas.toBlob((blob) => shareOrDownload(blob, 'airtoon.png'), 'image/png');
+    return;
+  }
+  recCanvas = document.createElement('canvas');
+  recCanvas.width = canvas.width; recCanvas.height = canvas.height;
+  rctx = recCanvas.getContext('2d');
+
+  const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+    ? 'video/mp4' : 'video/webm';
+  const stream = recCanvas.captureStream(30);
+  mediaRecorder = new MediaRecorder(stream, { mimeType });
+  const chunks = [];
+  mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    recording = false;
+    recordBtn.textContent = '⏺ Record';
+    recordBtn.classList.remove('recording');
+    const blob = new Blob(chunks, { type: mimeType });
+    shareOrDownload(blob, mimeType === 'video/mp4' ? 'airtoon.mp4' : 'airtoon.webm');
+  };
+  mediaRecorder.start();
+  recording = true;
+  recordBtn.textContent = '⏹ Stop';
+  recordBtn.classList.add('recording');
+  stopTimer = setTimeout(() => stopRecording(), 15000);
+}
+
+function stopRecording() {
+  clearTimeout(stopTimer);
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+}
+
+recordBtn.addEventListener('click', () => {
+  if (recording) stopRecording(); else startRecording();
+});
 
 document.getElementById('retryBtn').addEventListener('click', startCamera);
 startCamera();
