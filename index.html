@@ -53,7 +53,7 @@
     button:active { transform: none; }
   }
 
-  #flipBtn, #helpBtn {
+  #flipBtn, #camBtn {
     position: fixed;
     top: max(10px, env(safe-area-inset-top));
     z-index: 10;
@@ -67,7 +67,8 @@
     box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.25);
   }
   #flipBtn { right: 10px; }
-  #helpBtn { right: 62px; font-size: 18px; }
+  #camBtn { right: 62px; font-size: 18px; }
+  #camBtn.off { background: var(--color-danger); color: #fff; }
   #fps {
     position: fixed;
     top: 8px;
@@ -175,7 +176,7 @@
   <video id="cam" autoplay playsinline muted></video>
   <canvas id="overlay"></canvas>
   <div id="fps"></div>
-  <button id="helpBtn">❓</button>
+  <button id="camBtn">📷</button>
   <button id="flipBtn">🔄</button>
   <div id="bottomBar">
     <button id="aliveBtn">✨ Alive</button>
@@ -196,6 +197,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=21"></script>
 </body>
 </html>

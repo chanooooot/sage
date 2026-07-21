@@ -7,8 +7,21 @@ firstRun.addEventListener('click', () => {
   if (!trackingStarted) startCamera();
 });
 
-document.getElementById('helpBtn').addEventListener('click', () => {
-  firstRun.style.display = 'flex';
+const camBtn = document.getElementById('camBtn');
+let cameraOn = true;
+camBtn.addEventListener('click', () => {
+  if (cameraOn) {
+    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+    video.srcObject = null;
+    cameraOn = false;
+    camBtn.textContent = '▶️';
+    camBtn.classList.add('off');
+  } else {
+    cameraOn = true;
+    camBtn.textContent = '📷';
+    camBtn.classList.remove('off');
+    startCamera();
+  }
 });
 const canvas = document.getElementById('overlay');
 const ctx = canvas.getContext('2d');
