@@ -146,7 +146,9 @@ function bringAlive() {
   }
 
   const radius = Math.max(w, h) / 2 * 1.1;
-  const body = Matter.Bodies.circle((minX + maxX) / 2, (minY + maxY) / 2, radius, {
+  const spawnX = (minX + maxX) / 2;
+  const spawnY = -radius - 40; // drop in from above screen
+  const body = Matter.Bodies.circle(spawnX, spawnY, radius, {
     restitution: 0.6, friction: 0.05
   });
   Matter.World.add(world, body);
@@ -209,6 +211,12 @@ function checkOpenPalm(lm) {
   }
 }
 
+function elasticOut(t) {
+  if (t === 0 || t === 1) return t;
+  const c4 = (2 * Math.PI) / 3;
+  return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+}
+
 function drawCreatures() {
   const now = performance.now();
   for (let i = creatures.length - 1; i >= 0; i--) {
@@ -232,19 +240,8 @@ function drawCreatures() {
     const scaleY = startled ? 0.85 : breathe;
     const scaleX = startled ? 1.15 : 1;
 
-    const spawnT = Math.min(1, (now - c.born) / 350);
-    const pop = spawnT < 1 ? 1 - Math.pow(1 - spawnT, 3) : 1; // ease-out pop-in
-
-    if (spawnT < 1) {
-      ctx.save();
-      ctx.globalAlpha = (1 - spawnT) * Math.max(0, c.opacity);
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(c.body.position.x, c.body.position.y, c.body.circleRadius * (0.3 + 1.2 * spawnT), 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
+    const spawnT = Math.min(1, (now - c.born) / 700);
+    const pop = spawnT < 1 ? elasticOut(spawnT) : 1; // overshoot wobble settle
 
     ctx.save();
     ctx.globalAlpha = Math.max(0, c.opacity);
