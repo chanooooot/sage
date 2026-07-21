@@ -151,6 +151,9 @@ function bringAlive() {
   });
   Matter.World.add(world, body);
 
+  const spawnColor = strokes[0].color;
+  const sparkles = Array.from({ length: 8 }, (_, i) => i / 8 * Math.PI * 2 + (Math.random() - 0.5) * 0.4);
+
   const creature = {
     body, sprite, w, h,
     born: performance.now(),
@@ -159,7 +162,8 @@ function bringAlive() {
     nextHop: performance.now() + 5000 + Math.random() * 7000,
     wigglePhase: Math.random() * Math.PI * 2,
     startleUntil: 0,
-    dying: false, fadeStart: 0, opacity: 1
+    dying: false, fadeStart: 0, opacity: 1,
+    spawnColor, sparkles
   };
   creatures.push(creature);
 
@@ -240,6 +244,28 @@ function drawCreatures() {
 
     const spawnT = Math.min(1, (now - c.born) / 700);
     const pop = spawnT < 1 ? elasticOut(spawnT) : 1; // overshoot wobble settle
+
+    const burstT = Math.min(1, (now - c.born) / 450);
+    if (burstT < 1) {
+      ctx.save();
+      ctx.globalAlpha = (1 - burstT) * Math.max(0, c.opacity);
+      ctx.strokeStyle = c.spawnColor;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(c.body.position.x, c.body.position.y, c.body.circleRadius * (0.4 + 1.3 * burstT), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      const dist = c.body.circleRadius * (0.3 + 1.6 * burstT);
+      const size = 5 * (1 - burstT) + 1;
+      for (const angle of c.sparkles) {
+        const sx = c.body.position.x + Math.cos(angle) * dist;
+        const sy = c.body.position.y + Math.sin(angle) * dist;
+        ctx.beginPath();
+        ctx.arc(sx, sy, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
 
     ctx.save();
     ctx.globalAlpha = Math.max(0, c.opacity);
