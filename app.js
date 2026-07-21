@@ -85,6 +85,12 @@ function drawStrokes() {
   }
 }
 
+document.getElementById('undoBtn').addEventListener('click', () => {
+  const removed = strokes.pop();
+  if (removed === currentStroke) currentStroke = null;
+  if (!strokes.length) currentColor = null;
+});
+
 document.getElementById('clearBtn').addEventListener('click', () => {
   strokes.length = 0;
   currentStroke = null;
