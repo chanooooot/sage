@@ -83,6 +83,8 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   strokes.length = 0;
   currentStroke = null;
   currentColor = null;
+  for (const c of creatures) Matter.World.remove(world, c.body);
+  creatures.length = 0;
 });
 
 // --- P3: alive, physics, procedural life ---
@@ -313,7 +315,7 @@ function startHandTracking() {
       const lm = lastResults.multiHandLandmarks[0];
       updatePinch(lm);
       addPoint(lm);
-      checkOpenPalm(lm);
+      if (!pinching) checkOpenPalm(lm);
 
       const tipX = lm[8].x * canvas.width, tipY = lm[8].y * canvas.height;
       const palmX = (lm[0].x + lm[9].x) / 2 * canvas.width, palmY = (lm[0].y + lm[9].y) / 2 * canvas.height;
