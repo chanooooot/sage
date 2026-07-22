@@ -585,18 +585,21 @@ function startRecording() {
   recCanvas.width = canvas.width; recCanvas.height = canvas.height;
   rctx = recCanvas.getContext('2d');
 
-  const mimeType = MediaRecorder.isTypeSupported('video/mp4')
-    ? 'video/mp4' : 'video/webm';
+  // iOS Photos only saves H.264 .mp4 — prefer an explicit codec so the file is decodable
+  const mimeType = ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp8', 'video/webm']
+    .find((t) => MediaRecorder.isTypeSupported(t)) || '';
   const stream = recCanvas.captureStream(30);
-  mediaRecorder = new MediaRecorder(stream, { mimeType });
+  mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
   const chunks = [];
   mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
   mediaRecorder.onstop = () => {
     recording = false;
     recordBtn.textContent = '⏺ Record';
     recordBtn.classList.remove('recording');
-    const blob = new Blob(chunks, { type: mimeType });
-    shareOrDownload(blob, mimeType === 'video/mp4' ? 'airdoodle.mp4' : 'airdoodle.webm');
+    const outType = mediaRecorder.mimeType || mimeType || 'video/mp4';
+    const blob = new Blob(chunks, { type: outType });
+    if (debug) alert(`rec: ${outType}\nsize: ${(blob.size / 1024).toFixed(0)} KB`);
+    shareOrDownload(blob, outType.includes('mp4') ? 'airdoodle.mp4' : 'airdoodle.webm');
   };
   mediaRecorder.start();
   recording = true;
