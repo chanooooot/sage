@@ -453,17 +453,18 @@ async function startCamera() {
 }
 
 async function flipCamera() {
-  currentFacing = currentFacing === 'user' ? 'environment' : 'user';
-  document.body.classList.toggle('mirrored', currentFacing === 'user');
-  if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+  const nextFacing = currentFacing === 'user' ? 'environment' : 'user';
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: currentFacing },
+      video: { facingMode: nextFacing },
       audio: false
     });
+    if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
     video.srcObject = stream;
+    currentFacing = nextFacing;
+    document.body.classList.toggle('mirrored', currentFacing === 'user');
   } catch (err) {
-    retry.style.display = 'flex';
+    // no alternate camera (e.g. desktop) — keep current stream running
   }
 }
 document.getElementById('flipBtn').addEventListener('click', flipCamera);

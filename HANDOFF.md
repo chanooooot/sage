@@ -1,6 +1,6 @@
 # HANDOFF — AirDoodle
 
-**Last updated:** 2026-07-22 (post rename + icon work)
+**Last updated:** 2026-07-22 (desktop playability fix)
 **Live URL:** https://chanooooot.github.io/sage/ (repo: chanooooot/sage, public)
 **App name:** AirDoodle (renamed from AirToon — title, share sheet, filenames, all docs updated)
 
@@ -22,6 +22,18 @@ rename + home-screen-icon pass on top.
 - **Extra (post-launch):** front/back camera flip toggle (🔄), camera on/off toggle (📷, privacy — fully stops tracks), birth effect (expanding color ring — was silently broken, now fixed + elastic wobble pop-in), fist-hold charge-up progress ring (makes the alive gesture legible), eyes/mouth tumble with body rotation instead of floating in screen space, experimental procedural smile, idle nudge hint after 4s of no drawing, active-draw-color swatch on Alive button, aria-labels on icon buttons, UI beautification pass (Fredoka/Nunito fonts, claymorphism-lite buttons, haptic feedback on Alive/Record, pulsing record button)
 - **Home-screen icon + manifest:** canvas-drawn icon (orange→purple gradient rounded square, doodle face) generated at runtime in `app.js` (`setupAppIcon()`) — no image asset file needed, keeps the zero-extra-files constraint. Sets favicon, apple-touch-icon, and an inline (Blob URL) web app manifest for standalone Add-to-Home-Screen. Mouth position tuned per user feedback (moved up toward face center).
 
+## Desktop playability (v1 was mobile-only per spec; now confirmed working)
+
+Core loop (webcam → MediaPipe hand tracking → pinch-draw → physics) was already
+device-agnostic, no mobile-only gate in code. One real bug blocked desktop use:
+`flipCamera()` stopped the current stream *before* requesting the new facing
+mode — on desktop (no back camera) that request fails, leaving video dead and
+throwing up the camera-denied screen over one button tap. Fixed: request the
+new stream first, only swap tracks if it succeeds; on failure (no alt camera)
+just keep the existing stream running. SPEC.md §8 "Desktop optimization"
+(layout/perf tuning for wide-aspect webcams, big-screen UI sizing) still
+backlogged — only the actual blocker was fixed.
+
 ## Deviations from original SPEC.md
 
 - **D6 changed:** "Alive" trigger is now **closed fist** (not open palm) — open palm false-triggered during pinch/draw since relaxed fingers read as extended. Hold time also tuned 1s → 0.6s for responsiveness. SPEC.md decision log already updated to reflect this.
@@ -35,7 +47,7 @@ rename + home-screen-icon pass on top.
 
 ## Cache-busting note
 
-`index.html` loads `app.js?v=N` — **bump the version number every time app.js changes** or GitHub Pages/mobile Safari caching will serve stale JS during testing. Currently at v29.
+`index.html` loads `app.js?v=N` — **bump the version number every time app.js changes** or GitHub Pages/mobile Safari caching will serve stale JS during testing. Currently at v31.
 
 ## Next steps / open threads
 
