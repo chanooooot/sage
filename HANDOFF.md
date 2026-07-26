@@ -1,6 +1,6 @@
 # HANDOFF — AirDoodle
 
-**Last updated:** 2026-07-22 (desktop playability fix)
+**Last updated:** 2026-07-26 (ship-ready + delight improvement plan added)
 **Live URL:** https://chanooooot.github.io/sage/ (repo: chanooooot/sage, public)
 **App name:** AirDoodle (renamed from AirToon — title, share sheet, filenames, all docs updated)
 
@@ -54,3 +54,96 @@ backlogged — only the actual blocker was fixed.
 - No friend/blind test done yet (P5's real verify: "a friend uses it with zero verbal instructions, creates a living creature within 2 minutes"). Do this before considering v1 fully done.
 - Judge the experimental procedural smile on a real phone with real drawings — keep or cut.
 - Bottom bar now has Alive/Record/Undo/Clear (4 buttons, one row, scrolls if needed) plus top-right Cam/Flip toggles (6 controls total) — watch for clutter in the blind test.
+
+## Agreed improvement plan (next agent)
+
+### Goal and order
+
+Ship a reliable, understandable v1 first, then use a small delight pass on creature
+behavior, interface polish, and sharing. Do not add frameworks, a build step,
+analytics, persistence, accounts, sound, or backlog features. Keep the current six
+persistent controls: Cam, Flip, Alive, Record, Undo, and Clear.
+
+### Settled decisions for this pass
+
+- **Alive gesture is closed fist held 0.6 seconds.** This is canonical. Fix stale
+  open-palm/one-second references in `SPEC.md`, `BUILD_PLAN.md`, `AGENTS.md`,
+  `CLAUDE.md`, and code comments.
+- The three-file cap means **runtime/public app files only**. Keep project-control
+  documents. Add the allowed `README.md` with live URL, gestures, device support,
+  privacy note, and real-phone verification status.
+- Rename GitHub Pages from `/sage/` to `/airdoodle/` before adding the social CTA.
+  Verify the deployed HTTPS URL and document old-link behavior.
+- Required sharing targets: **LINE and Instagram** on Ham's phone.
+- Share attribution uses both share-sheet text/link and a small recording watermark.
+
+### 1. Core reliability and performance
+
+1. Stop resetting `canvas.width` and `canvas.height` every animation frame. Resize only
+   when dimensions change; rebuild Matter walls only then. Preserve mirrored alignment.
+2. Give camera ownership to one path. Remove MediaPipe `camera_utils` and feed the
+   existing `getUserMedia` stream into Hands from one sequential animation loop. Cam,
+   Flip, retry, and return-from-share must use that one lifecycle.
+3. Move Matter's fixed 30 Hz update into the render loop with a capped time accumulator.
+   Remove the independent physics `setInterval`; hidden tabs must not race physics ahead.
+4. Keep the one-hand lite model, 3-creature cap, circle bodies, and 2,000-point limit.
+   Do not add speculative optimization: profile on Ham's phone first.
+5. Keep `app.js` below 50 KB. Run `node --check app.js` after changes and retain
+   `?debug=1` FPS diagnostics.
+
+### 2. First-run UX, controls, and accessibility
+
+1. Replace click-anywhere onboarding with an explicit **Start camera** button. Use:
+   “Prop up your phone. Pinch thumb + index finger to draw. Hold a fist to bring it alive.”
+2. Give first-run and camera-denied surfaces dialog semantics, keyboard access, visible
+   focus, and a stacking level above all controls. They must block background controls.
+3. Keep all six controls. Update the camera label and `aria-pressed` with its state;
+   disable Flip while the camera is off.
+4. Make Alive, Record, Undo, and Clear a fixed four-column bottom toolbar instead of a
+   horizontally scrolling row. Preserve 44 x 44 px targets and safe-area padding.
+5. Fix white-on-orange/red contrast. Keep violet for Alive. Retain Fredoka for playful
+   controls, use the system font for supporting copy, and remove the Nunito request.
+
+### 3. Creature delight pass
+
+1. Replace the 700 ms elastic spawn with a 200-300 ms ease-out pop; retain the color ring.
+2. Remove the experimental procedural smile for v1. It is outside the settled behavior
+   spec and can distort abstract drawings; eyes are sufficient personality.
+3. Tune only existing behavior: spawn readability, collision-startle duration, hop force
+   and timing, eye placement, blink cadence, and pupil tracking. Do not add limbs, sound,
+   particles, or new creature modes.
+4. Limit delight tuning to two real-phone rounds. If Ham does not approve it, honor the
+   existing P3 kill gate.
+
+### 4. Recording and social sharing
+
+1. Share the recorded file plus:
+   - Title: `AirDoodle`
+   - Text: `I drew this in the air and brought it to life ✨ Make yours:`
+   - URL: `https://chanooooot.github.io/airdoodle/`
+2. After the mirrored recording composite, draw a small readable **non-mirrored** watermark:
+   `Made with AirDoodle · chanooooot.github.io/airdoodle`. Keep it in crop-safe margins.
+   The watermark is attribution; the share URL is the clickable route back to the app.
+3. Some social apps may discard share text/URLs with a video. Test LINE and Instagram
+   separately; the watermark is the reliable fallback.
+4. Implement the promised fallback: create/click a temporary download link, then revoke
+   its object URL. Do not only show “Save not supported”.
+5. When MediaRecorder is unavailable, screenshot the camera + drawing composite, not the
+   transparent drawing overlay alone.
+6. Keep the 15-second cap and plain Record/Stop labels; do not restore a live countdown.
+
+### Verification checklist
+
+- `node --check app.js` passes; own JS remains below 50 KB.
+- Ham's phone sustains at least 15 FPS with three creatures, including while recording.
+  Test orientation, Cam off/on, Flip, permission retry, backgrounding, and share return.
+- Physics stays at fixed 30 Hz and does not advance while the tab is hidden.
+- Controls stay visible without horizontal scrolling, meet 44 px minimums, expose focus,
+  and pass AA text contrast.
+- Blind test: a fresh user starts camera, draws, brings a creature alive, and records/
+  shares it within two minutes without verbal help.
+- Delight test: Ham approves the alive moment within two tuning rounds.
+- LINE and Instagram: video plays, watermark is readable/unmirrored, CTA survives where
+  supported, cancellation is quiet, and unsupported sharing downloads a usable file.
+- Verify `https://chanooooot.github.io/airdoodle/` over HTTPS after the Pages rename.
+  Update the cache-busting query whenever `app.js` changes.
