@@ -1,7 +1,7 @@
 # HANDOFF — AirDoodle
 
-**Last updated:** 2026-07-26 (ship-ready + delight improvement plan added)
-**Live URL:** https://chanooooot.github.io/sage/ (repo: chanooooot/sage, public)
+**Last updated:** 2026-07-26 (improvement plan sections 1-4 implemented, repo renamed, creature cap bumped)
+**Live URL:** https://chanooooot.github.io/airdoodle/ (repo: chanooooot/airdoodle, public — renamed from `sage` today; old `/sage/` links redirect via GitHub for a while, not forever)
 **App name:** AirDoodle (renamed from AirToon — title, share sheet, filenames, all docs updated)
 
 ## Status: P0–P5 all shipped, plus a full review/polish pass
@@ -47,13 +47,26 @@ backlogged — only the actual blocker was fixed.
 
 ## Cache-busting note
 
-`index.html` loads `app.js?v=N` — **bump the version number every time app.js changes** or GitHub Pages/mobile Safari caching will serve stale JS during testing. Currently at v31.
+`index.html` loads `app.js?v=N` — **bump the version number every time app.js changes** or GitHub Pages/mobile Safari caching will serve stale JS during testing. Currently at v35.
+
+## Improvement plan — implemented (2026-07-26)
+
+All four sections of the plan below (see "Agreed improvement plan" further down) are coded and pushed. None of it has been verified on Ham's real phone yet — that's the open item.
+
+- **Core reliability:** `resizeCanvas()` now no-ops unless video dims actually changed (walls rebuild only then, no more per-frame reset). Dropped MediaPipe `camera_utils` entirely — one `getUserMedia` stream feeds `Hands` from the existing render `requestAnimationFrame` loop (`sendFrame()`, guarded against overlapping sends). Physics moved off its own `setInterval` into `stepPhysics()` inside the render loop with a capped accumulator (max 5 steps catch-up), so a backgrounded/hidden tab can't let physics race ahead.
+- **First-run UX / a11y:** explicit **Start camera** button (no more click-anywhere). `firstRun`/`retry` are real modal dialogs — `role="dialog" aria-modal="true"`, autofocus their button, and toggle native `inert` on the background controls (`camBtn`/`flipBtn`/`bottomBar`) while open. `camBtn` reflects `aria-pressed`; `flipBtn` disables while camera is off. Bottom bar is now a fixed 4-column grid (no horizontal scroll). Fixed white-on-orange/red contrast failures (danger/primary buttons now use the `-dark` color variants, ~5:1+). Dropped Nunito, system font for supporting copy, Fredoka kept for buttons.
+- **Creature delight:** spawn pop is now a 250ms ease-out (was a 700ms elastic overshoot); color ring kept. Removed the experimental procedural smile entirely — eyes only.
+- **Recording/sharing:** share payload now includes title/text/URL (`https://chanooooot.github.io/airdoodle/`), with a file-only fallback if a browser rejects the combined share. Added a non-mirrored, crop-safe watermark (`Made with AirDoodle · chanooooot.github.io/airdoodle`) drawn onto the recording composite outside the mirror transform. Real download fallback (temp `<a>` + `revokeObjectURL`) replaces the old dead-end "not supported" message. MediaRecorder-unavailable screenshot fallback now composites camera+drawing instead of the bare transparent overlay.
+
+`node --check app.js` passes; `app.js` is ~24.8KB, still well under the 50KB budget.
 
 ## Next steps / open threads
 
+- **Nothing above has been tested on Ham's real phone yet.** Priority: verify FPS with 5 creatures (including while recording), Cam off/on, Flip, permission retry, backgrounding/return, and the new dialog/inert behavior doesn't trap focus somewhere unexpected.
+- **Creature cap bumped 3 → 5** (Ham's call, explicit perf-risk tradeoff — see updated CLAUDE.md/SPEC.md/BUILD_PLAN.md/AGENTS.md). Unverified whether 5 holds ≥15fps on Ham's phone, especially mid-recording. If it doesn't, drop back toward 3-4.
+- LINE and Instagram share testing (text/URL/watermark survival, cancellation quietness, unsupported-share download) — not yet done on Ham's phone.
 - No friend/blind test done yet (P5's real verify: "a friend uses it with zero verbal instructions, creates a living creature within 2 minutes"). Do this before considering v1 fully done.
-- Judge the experimental procedural smile on a real phone with real drawings — keep or cut.
-- Bottom bar now has Alive/Record/Undo/Clear (4 buttons, one row, scrolls if needed) plus top-right Cam/Flip toggles (6 controls total) — watch for clutter in the blind test.
+- Judge the removed procedural smile's absence — if eyes alone read as too plain on a real phone, that's a design call for Ham, not a silent re-add.
 
 ## Agreed improvement plan (next agent)
 
