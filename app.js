@@ -564,22 +564,26 @@ function compositeFrame() {
   rctx.restore();
 }
 
+function flashRecordBtn(text) {
+  const prevText = recordBtn.textContent;
+  recordBtn.textContent = text;
+  setTimeout(() => { recordBtn.textContent = prevText; }, 2000);
+}
+
 async function shareOrDownload(blob, filename) {
   const file = new File([blob], filename, { type: blob.type });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: 'AirDoodle' });
-      const prevText = recordBtn.textContent;
-      recordBtn.textContent = '✅ Saved!';
-      setTimeout(() => { recordBtn.textContent = prevText; }, 2000);
-      return;
-    } catch (e) {}
+      flashRecordBtn('✅ Saved!');
+    } catch (e) {
+      // user backing out of the share sheet is not a failure — stay quiet.
+      // any other error: surface the real name instead of guessing at "not supported"
+      if (e.name !== 'AbortError') flashRecordBtn(`⚠ ${e.name || 'error'}`);
+    }
+    return;
   }
-  // no Files-app fallback — iOS "Save Video" needs the share sheet; a plain
-  // download would only land in Files, which isn't what the user wants.
-  const prevText = recordBtn.textContent;
-  recordBtn.textContent = '⚠ Save not supported';
-  setTimeout(() => { recordBtn.textContent = prevText; }, 2000);
+  flashRecordBtn('⚠ Save not supported');
 }
 
 // iOS suspends the camera <video> feed while the native share sheet is open
