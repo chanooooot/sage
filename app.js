@@ -55,14 +55,30 @@ const video = document.getElementById('cam');
 const retry = document.getElementById('retry');
 const firstRun = document.getElementById('firstRun');
 const idleHintEl = document.getElementById('idleHint');
+const bottomBar = document.getElementById('bottomBar');
+const camBtn = document.getElementById('camBtn');
+const flipBtn = document.getElementById('flipBtn');
 let cameraStartTime = null;
-function dismissFirstRun() { firstRun.style.display = 'none'; }
-firstRun.addEventListener('click', () => {
+
+// first-run/retry are modal dialogs: block the background controls while shown
+function updateBackgroundInert() {
+  const blocked = firstRun.style.display !== 'none' || retry.style.display === 'flex';
+  camBtn.inert = blocked;
+  flipBtn.inert = blocked;
+  bottomBar.inert = blocked;
+}
+
+function dismissFirstRun() {
+  firstRun.style.display = 'none';
+  updateBackgroundInert();
+}
+document.getElementById('startCameraBtn').addEventListener('click', () => {
   dismissFirstRun();
   if (!trackingStarted) startCamera();
 });
+updateBackgroundInert();
+document.getElementById('startCameraBtn').focus();
 
-const camBtn = document.getElementById('camBtn');
 let cameraOn = true;
 camBtn.addEventListener('click', () => {
   if (cameraOn) {
@@ -71,10 +87,14 @@ camBtn.addEventListener('click', () => {
     cameraOn = false;
     camBtn.textContent = '▶️';
     camBtn.classList.add('off');
+    camBtn.setAttribute('aria-pressed', 'false');
+    flipBtn.disabled = true;
   } else {
     cameraOn = true;
     camBtn.textContent = '📷';
     camBtn.classList.remove('off');
+    camBtn.setAttribute('aria-pressed', 'true');
+    flipBtn.disabled = false;
     startCamera();
   }
 });
@@ -85,8 +105,12 @@ const debug = new URLSearchParams(location.search).has('debug');
 fpsEl.style.display = debug ? 'block' : 'none';
 
 function resizeCanvas() {
-  canvas.width = video.videoWidth || window.innerWidth;
-  canvas.height = video.videoHeight || window.innerHeight;
+  const w = video.videoWidth || window.innerWidth;
+  const h = video.videoHeight || window.innerHeight;
+  if (canvas.width === w && canvas.height === h) return;
+  canvas.width = w;
+  canvas.height = h;
+  setupWalls();
 }
 
 let lastResults = null;
@@ -201,7 +225,19 @@ const fingerBody = Matter.Bodies.circle(0, 0, 26, { isStatic: true, label: 'hand
 const palmBody = Matter.Bodies.circle(0, 0, 45, { isStatic: true, label: 'hand' });
 Matter.World.add(world, [fingerBody, palmBody]);
 
-setInterval(() => Matter.Engine.update(engine, 1000 / 30), 1000 / 30);
+const PHYSICS_STEP = 1000 / 30;
+const MAX_PHYSICS_STEPS = 5; // cap catch-up after a hidden/backgrounded tab
+let physicsAccum = 0;
+let lastPhysicsTime = performance.now();
+function stepPhysics() {
+  const now = performance.now();
+  physicsAccum = Math.min(physicsAccum + (now - lastPhysicsTime), PHYSICS_STEP * MAX_PHYSICS_STEPS);
+  lastPhysicsTime = now;
+  while (physicsAccum >= PHYSICS_STEP) {
+    Matter.Engine.update(engine, PHYSICS_STEP);
+    physicsAccum -= PHYSICS_STEP;
+  }
+}
 
 const creatures = [];
 const MAX_CREATURES = 3;
@@ -317,10 +353,8 @@ function checkFist(lm) {
   }
 }
 
-function elasticOut(t) {
-  if (t === 0 || t === 1) return t;
-  const c4 = (2 * Math.PI) / 3;
-  return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+function easeOut(t) {
+  return 1 - Math.pow(1 - t, 3);
 }
 
 function drawCreatures() {
@@ -346,8 +380,8 @@ function drawCreatures() {
     const scaleY = startled ? 0.85 : breathe;
     const scaleX = startled ? 1.15 : 1;
 
-    const spawnT = Math.min(1, (now - c.born) / 700);
-    const pop = spawnT < 1 ? elasticOut(spawnT) : 1; // overshoot wobble settle
+    const spawnT = Math.min(1, (now - c.born) / 250);
+    const pop = spawnT < 1 ? easeOut(spawnT) : 1;
 
     const burstT = Math.min(1, (now - c.born) / 450);
     if (burstT < 1) {
@@ -410,17 +444,6 @@ function drawCreatures() {
           ctx.fill();
         }
       }
-
-      // experimental: procedural smile, lower third of sprite bounds
-      const mouthY = c.h / 2 - c.h / 6;
-      const mouthHalfW = c.w / 8;
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-mouthHalfW, mouthY);
-      ctx.quadraticCurveTo(0, mouthY + (startled ? 2 : 8), mouthHalfW, mouthY);
-      ctx.stroke();
     }
 
     ctx.restore();
@@ -438,9 +461,9 @@ async function startCamera() {
     });
     video.srcObject = stream;
     retry.style.display = 'none';
+    updateBackgroundInert();
     video.onloadedmetadata = () => {
       resizeCanvas();
-      setupWalls();
       if (!trackingStarted) {
         trackingStarted = true;
         cameraStartTime = performance.now();
@@ -449,6 +472,8 @@ async function startCamera() {
     };
   } catch (err) {
     retry.style.display = 'flex';
+    updateBackgroundInert();
+    document.getElementById('retryBtn').focus();
   }
 }
 
@@ -481,12 +506,12 @@ function startHandTracking() {
   });
   hands.onResults(onResults);
 
-  const camera = new Camera(video, {
-    onFrame: async () => { await hands.send({ image: video }); },
-    width: 640,
-    height: 480
-  });
-  camera.start();
+  let handsBusy = false;
+  function sendFrame() {
+    if (handsBusy) return;
+    handsBusy = true;
+    hands.send({ image: video }).finally(() => { handsBusy = false; });
+  }
 
   let frames = 0;
   let lastFpsTime = performance.now();
@@ -494,6 +519,8 @@ function startHandTracking() {
 
   function render() {
     resizeCanvas();
+    stepPhysics();
+    sendFrame();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     colorSwatch.style.background = currentColor || 'transparent';
 
@@ -555,6 +582,22 @@ const recordBtn = document.getElementById('recordBtn');
 let recording = false;
 let recCanvas, rctx, mediaRecorder, stopTimer;
 
+const WATERMARK_TEXT = 'Made with AirDoodle · chanooooot.github.io/airdoodle';
+
+function drawWatermark(c, w, h) {
+  c.save();
+  c.font = "600 14px Fredoka, system-ui, sans-serif";
+  c.textBaseline = 'bottom';
+  const pad = Math.max(14, Math.round(h * 0.04)); // stay in crop-safe margin
+  const tw = c.measureText(WATERMARK_TEXT).width;
+  const x = w - tw - pad, y = h - pad;
+  c.fillStyle = 'rgba(0,0,0,0.45)';
+  c.fillRect(x - 8, y - 16, tw + 16, 22);
+  c.fillStyle = '#fff';
+  c.fillText(WATERMARK_TEXT, x, y);
+  c.restore();
+}
+
 function compositeFrame() {
   rctx.save();
   rctx.translate(recCanvas.width, 0);
@@ -562,6 +605,7 @@ function compositeFrame() {
   rctx.drawImage(video, 0, 0, recCanvas.width, recCanvas.height);
   rctx.drawImage(canvas, 0, 0, recCanvas.width, recCanvas.height);
   rctx.restore();
+  drawWatermark(rctx, recCanvas.width, recCanvas.height); // unmirrored, drawn outside the flip
 }
 
 function flashRecordBtn(text) {
@@ -570,11 +614,29 @@ function flashRecordBtn(text) {
   setTimeout(() => { recordBtn.textContent = prevText; }, 2000);
 }
 
+const SHARE_TEXT = 'I drew this in the air and brought it to life ✨ Make yours:';
+const SHARE_URL = 'https://chanooooot.github.io/airdoodle/';
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 async function shareOrDownload(blob, filename) {
   const file = new File([blob], filename, { type: blob.type });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+  const fullShare = { files: [file], title: 'AirDoodle', text: SHARE_TEXT, url: SHARE_URL };
+  // some browsers accept files alone but reject the files+text+url combo — fall back to file-only share
+  const canShareFull = navigator.canShare && navigator.canShare(fullShare);
+  const canShareFileOnly = !canShareFull && navigator.canShare && navigator.canShare({ files: [file] });
+  if (canShareFull || canShareFileOnly) {
     try {
-      await navigator.share({ files: [file], title: 'AirDoodle' });
+      await navigator.share(canShareFull ? fullShare : { files: [file] });
       flashRecordBtn('✅ Saved!');
     } catch (e) {
       // user backing out of the share sheet is not a failure — stay quiet.
@@ -583,7 +645,8 @@ async function shareOrDownload(blob, filename) {
     }
     return;
   }
-  flashRecordBtn('⚠ Save not supported');
+  downloadBlob(blob, filename);
+  flashRecordBtn('✅ Saved!');
 }
 
 // iOS suspends the camera <video> feed while the native share sheet is open
@@ -594,8 +657,17 @@ document.addEventListener('visibilitychange', () => {
 
 function startRecording() {
   if (!window.MediaRecorder) {
-    // iOS/unsupported fallback: single screenshot
-    canvas.toBlob((blob) => shareOrDownload(blob, 'airdoodle.png'), 'image/png');
+    // iOS/unsupported fallback: single screenshot, camera + drawing composited (not the transparent overlay alone)
+    const shot = document.createElement('canvas');
+    shot.width = canvas.width; shot.height = canvas.height;
+    const sctx = shot.getContext('2d');
+    sctx.save();
+    sctx.translate(shot.width, 0);
+    sctx.scale(-1, 1);
+    sctx.drawImage(video, 0, 0, shot.width, shot.height);
+    sctx.drawImage(canvas, 0, 0, shot.width, shot.height);
+    sctx.restore();
+    shot.toBlob((blob) => shareOrDownload(blob, 'airdoodle.png'), 'image/png');
     return;
   }
   recCanvas = document.createElement('canvas');
