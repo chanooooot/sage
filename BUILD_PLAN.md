@@ -38,10 +38,10 @@ Phased. Each phase ends with a verifiable check (karpathy: goal-driven execution
 3. matter.js world: gravity, walls = screen edges; creature = circle body (radius from stroke bounds) with sprite rendered on top — **start with circle body, not convex hull; upgrade only if it feels wrong**
 4. Procedural life per SPEC §3: breathe, wiggle, blinking eyes with pupil-tracking, random hops, startle on collision
 5. Hand bodies: fingertip + palm as kinematic circles that push creatures
-6. Cap 3 creatures, oldest fades out over 1.5s
+6. Cap 5 creatures, oldest fades out over 1.5s
 7. Physics at fixed 30Hz timestep decoupled from render
 
-**Verify (the delight test):** Draw a blob → open palm → it drops, bounces, breathes, blinks, looks at your hand. Bat it with your hand → it flies and startles. Ham grins. ≥15fps with 3 creatures. **KILL GATE: if not delightful after 2 tuning rounds, park project.**
+**Verify (the delight test):** Draw a blob → open palm → it drops, bounces, breathes, blinks, looks at your hand. Bat it with your hand → it flies and startles. Ham grins. ≥15fps with 5 creatures. **KILL GATE: if not delightful after 2 tuning rounds, park project.**
 
 ## P4 — Record & Share (~half day)
 
@@ -66,7 +66,7 @@ Phased. Each phase ends with a verifiable check (karpathy: goal-driven execution
 
 | Thing | Budget |
 |---|---|
-| FPS with 3 creatures | ≥15 |
+| FPS with 5 creatures | ≥15 |
 | MediaPipe model | lite (complexity 0), 1 hand |
 | Physics tick | 30Hz fixed |
 | Max stroke points per drawing | 2,000 (drop-oldest beyond) |

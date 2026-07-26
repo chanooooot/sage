@@ -14,7 +14,7 @@
   - Procedural life: breathing squash-and-stretch, wiggle, auto-stamped blinking eyes, occasional hops.
   - Physics: gravity, bounces off screen edges and floor (matter.js).
   - Hand reactivity: user's hand is a physics body — creatures can be batted, pushed, juggled.
-- Max 3 creatures alive; creating a 4th fades out the oldest.
+- Max 5 creatures alive; creating a 6th fades out the oldest.
 - Record button: 15-second video clip → native share sheet.
 
 ## 2. Decision Log
@@ -72,7 +72,7 @@ Hysteresis and 3-frame smoothing on all gesture detections to avoid flicker.
 | Risk | Level | Mitigation |
 |------|-------|-----------|
 | iOS Safari MediaRecorder quirks | Med | Test early (P4 gate). Fallback: iOS gets screenshot-only, documented known-issue. |
-| Mobile perf (tracking + physics) | Med | MediaPipe lite model, 1 hand, cap 3 creatures, physics at 30Hz, render via requestAnimationFrame with frame skip. |
+| Mobile perf (tracking + physics) | Med | MediaPipe lite model, 1 hand, cap 5 creatures, physics at 30Hz, render via requestAnimationFrame with frame skip. |
 | Pinch misfires / jitter | Low | Hysteresis + smoothing (§4); fallback button. |
 | Camera permission denied | Low | Friendly retry screen. |
 

@@ -10,7 +10,7 @@ You are building AirDoodle: a mobile webapp where the user draws a cartoon in th
 2. **No build step.** Vanilla JS. Libraries via CDN `<script>` tags only (MediaPipe Hands, matter.js). Repo = `index.html` + `app.js` + `README.md`. Nothing else.
 3. **Mobile-first.** Portrait, front camera, mirrored. Perf budget in BUILD_PLAN.md is binding.
 4. **Phase order is binding.** Complete each phase's Verify step (Ham tests on his real phone via the deployed URL) before starting the next. Kill gates in P1 and P3 are real — report honestly if hit.
-5. **One hand tracked. Max 3 creatures. Pinch = draw. Open palm 1s (or button) = alive.**
+5. **One hand tracked. Max 5 creatures. Pinch = draw. Closed fist 0.6s (or button) = alive.**
 
 ## Working Style (Karpathy rules — follow strictly)
 

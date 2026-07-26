@@ -240,7 +240,7 @@ function stepPhysics() {
 }
 
 const creatures = [];
-const MAX_CREATURES = 3;
+const MAX_CREATURES = 5;
 
 function bboxOfStrokes() {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;

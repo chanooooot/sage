@@ -16,7 +16,7 @@ Source of truth:
 2. **Repo files:** `index.html`, `app.js`, `README.md` only. Do not add other files without explicit approval.
 3. **Zero cost:** no servers, no API keys, no external services. Deploy target: GitHub Pages (HTTPS required for camera).
 4. **Follow phase order** in BUILD_PLAN.md. A phase is done only when its Verify check passes on Ham's real phone. Respect kill gates (P1: ≥15fps; P3: delight test).
-5. **Perf budgets are binding** (BUILD_PLAN.md table): ≥15fps with 3 creatures, physics 30Hz, ≤2,000 stroke points, <50KB own JS.
+5. **Perf budgets are binding** (BUILD_PLAN.md table): ≥15fps with 5 creatures, physics 30Hz, ≤2,000 stroke points, <50KB own JS.
 6. **Simplicity:** minimum code per phase. No speculative features, abstractions, or configs. Every changed line must trace to the current phase or explicit feedback.
 7. **Non-goals** (do not build): anything in SPEC.md §8 backlog, tests frameworks, analytics, persistence, accounts, sound.
 
