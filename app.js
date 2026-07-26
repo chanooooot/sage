@@ -567,14 +567,26 @@ function compositeFrame() {
 async function shareOrDownload(blob, filename) {
   const file = new File([blob], filename, { type: blob.type });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'AirDoodle' }); return; } catch (e) {}
+    try {
+      await navigator.share({ files: [file], title: 'AirDoodle' });
+      const prevText = recordBtn.textContent;
+      recordBtn.textContent = '✅ Saved!';
+      setTimeout(() => { recordBtn.textContent = prevText; }, 2000);
+      return;
+    } catch (e) {}
   }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  // no Files-app fallback — iOS "Save Video" needs the share sheet; a plain
+  // download would only land in Files, which isn't what the user wants.
+  const prevText = recordBtn.textContent;
+  recordBtn.textContent = '⚠ Save not supported';
+  setTimeout(() => { recordBtn.textContent = prevText; }, 2000);
 }
+
+// iOS suspends the camera <video> feed while the native share sheet is open
+// and doesn't resume it on its own — restart playback when the app comes back.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && video.srcObject) video.play().catch(() => {});
+});
 
 function startRecording() {
   if (!window.MediaRecorder) {
@@ -597,9 +609,10 @@ function startRecording() {
     recording = false;
     recordBtn.textContent = '⏺ Record';
     recordBtn.classList.remove('recording');
-    const outType = mediaRecorder.mimeType || mimeType || 'video/mp4';
+    // strip codec params (e.g. ";codecs=avc1.42E01E") — iOS Photos' Save Video
+    // import matches on a clean MIME type, not a parameterized one
+    const outType = (mediaRecorder.mimeType || mimeType || 'video/mp4').split(';')[0];
     const blob = new Blob(chunks, { type: outType });
-    if (debug) alert(`rec: ${outType}\nsize: ${(blob.size / 1024).toFixed(0)} KB`);
     shareOrDownload(blob, outType.includes('mp4') ? 'airdoodle.mp4' : 'airdoodle.webm');
   };
   mediaRecorder.start();
