@@ -77,6 +77,29 @@
   #camBtn { right: 62px; }
   #camBtn.off { background: linear-gradient(155deg, #F87171, var(--color-danger-dark)); }
   #flipBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+  #camOffScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: linear-gradient(165deg, #3B2A5C, #5B215B);
+  }
+  #camOffScreen.show { display: flex; }
+  #camOffScreen .box {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(155deg, #A78BFA, var(--color-accent));
+    box-shadow: 0 4px 0 var(--color-accent-dark), 0 6px 14px rgba(0,0,0,0.35);
+  }
+  #camOffScreen p { margin: 0; font-family: system-ui, sans-serif; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.8); }
   #fps {
     position: fixed;
     top: 8px;
@@ -292,6 +315,7 @@
 <body class="mirrored">
   <video id="cam" autoplay playsinline muted></video>
   <canvas id="overlay"></canvas>
+  <div id="camOffScreen"><div class="box"><svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.6"><rect x="1" y="5" width="14" height="11" rx="3"/><path d="M15 8 L19 5.5 V13.5 L15 11 Z" fill="#fff" stroke="none"/><path d="M2 2 L18 18" stroke-linecap="round"/></svg></div><p>Camera off</p></div>
   <div id="fps"></div>
   <button id="camBtn" aria-label="Turn camera on or off" aria-pressed="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="#1F2937"><rect x="1" y="5" width="14" height="11" rx="3"/><path d="M15 8 L19 5.5 V13.5 L15 11 Z"/><circle cx="8" cy="10.5" r="3" fill="#fff"/></svg></button>
   <button id="flipBtn" aria-label="Flip front/back camera"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1F2937" stroke-width="1.8" stroke-linecap="round"><path d="M4 7a6 6 0 0 1 10-3l1.5 1.5"/><path d="M16 13a6 6 0 0 1-10 3L4.5 14.5"/><path d="M13.5 3.5 15.5 5.5 13.5 7.5" fill="#1F2937" stroke="none"/><path d="M6.5 16.5 4.5 14.5 6.5 12.5" fill="#1F2937" stroke="none"/></svg></button>
@@ -321,6 +345,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="app.js?v=36"></script>
+  <script src="app.js?v=37"></script>
 </body>
 </html>
