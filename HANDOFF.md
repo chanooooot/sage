@@ -1,6 +1,6 @@
 # HANDOFF — AirDoodle
 
-**Last updated:** 2026-07-26 (improvement plan sections 1-4 implemented, repo renamed, creature cap bumped)
+**Last updated:** 2026-07-27 (claymorphism design pass, camera-off screen, 16-color palette, bonus special creatures)
 **Live URL:** https://chanooooot.github.io/airdoodle/ (repo: chanooooot/airdoodle, public — renamed from `sage` today; old `/sage/` links redirect via GitHub for a while, not forever)
 **App name:** AirDoodle (renamed from AirToon — title, share sheet, filenames, all docs updated)
 
@@ -47,7 +47,7 @@ backlogged — only the actual blocker was fixed.
 
 ## Cache-busting note
 
-`index.html` loads `app.js?v=N` — **bump the version number every time app.js changes** or GitHub Pages/mobile Safari caching will serve stale JS during testing. Currently at v35.
+`index.html` loads `app.js?v=N` — **bump the version number every time app.js changes** or GitHub Pages/mobile Safari caching will serve stale JS during testing. Currently at v39.
 
 ## Improvement plan — implemented (2026-07-26)
 
@@ -58,11 +58,56 @@ All four sections of the plan below (see "Agreed improvement plan" further down)
 - **Creature delight:** spawn pop is now a 250ms ease-out (was a 700ms elastic overshoot); color ring kept. Removed the experimental procedural smile entirely — eyes only.
 - **Recording/sharing:** share payload now includes title/text/URL (`https://chanooooot.github.io/airdoodle/`), with a file-only fallback if a browser rejects the combined share. Added a non-mirrored, crop-safe watermark (`Made with AirDoodle · chanooooot.github.io/airdoodle`) drawn onto the recording composite outside the mirror transform. Real download fallback (temp `<a>` + `revokeObjectURL`) replaces the old dead-end "not supported" message. MediaRecorder-unavailable screenshot fallback now composites camera+drawing instead of the bare transparent overlay.
 
-`node --check app.js` passes; `app.js` is ~24.8KB, still well under the 50KB budget.
+`node --check app.js` passes; `app.js` is ~31.4KB (as of 2026-07-27), still well under the 50KB budget.
+
+## Design pass + creature variety (2026-07-27)
+
+Implemented a claymorphism visual pass from a Claude Design mock (`AirDoodle Design Pass.dc.html`,
+imported via the design MCP), plus a creature-variety feature requested separately. Nothing below has
+been verified on Ham's phone yet.
+
+**Visual pass (`index.html`):**
+- Chunky gradient buttons everywhere (camBtn/flipBtn, bottom bar, first-run/retry buttons) — thicker
+  drop-shadows, gradient fills, replacing the old flat-color look.
+- Raw emoji replaced with inline SVG glyphs for camera/flip/alive/record/undo/clear. First-run icon
+  chips still use emoji for Fist (✊) and Alive (✨); Pinch went through several iterations (custom PNG
+  → hand-drawn SVG attempt, abandoned as unreadable after 3 tries) and is back to native 🤏 — matches
+  its siblings, needs no more tuning.
+- Recording state: pulsing red frame border + dimmed sibling buttons, both **CSS-only** via `:has()`
+  (`#bottomBar:has(#recordBtn.recording) ...`, `body:has(#recordBtn.recording)::after`) — no JS added.
+  Modern `:has()` support assumed fine given the project already requires iOS 16.4+ level APIs.
+  Added a live elapsed-time pill (`#recTimer`) wired into the existing render loop.
+- New **camera-off screen** (`#camOffScreen`): toggling Cam off used to just reveal the plain black
+  `<body>` background — replaced with a gradient + icon chip ("Camera off"), matching the
+  first-run/retry visual language.
+- Retry (camera-denied) screen restyled to match first-run (gradient bg, icon chip, chunky button).
+
+**Creature variety (`app.js`):**
+- `COLORS` palette: 6 fixed hex values → 16 generated hues (`Array.from({length:16}, ...)`, even hue
+  spread, same saturation/lightness as before) — addresses "creature colors don't vary" feedback.
+- `bringAlive()`: ~1-in-10 chance to spawn a **special** creature carrying one of 10 effects picked at
+  random — `rainbow` (hue-cycling outline), `sparkle` (drifting gold particles), `glow` (pulsing
+  shadowBlur halo), `giant` (1.6x size, radius scaled on the Matter body too so physics matches),
+  `shimmer` (sweeping highlight clipped to body), `confetti` (one-shot particle burst at spawn),
+  `starryEyes` (star-shaped pupils), `trailGhost` (fading afterimages, needs motion to read), `jellyWobble`
+  (bigger breathe/wiggle amplitude, needs motion to read), `orbitRing` (rotating ellipse halo).
+- Special creatures get a bigger 3-ring rainbow "firework" birth burst (800ms) instead of the normal
+  single-ring pop (450ms), a fading toast pill ("✨ Special creature!"), and a longer haptic buzz — the
+  discoverable "tell" that something rare happened.
+- All 10 effects were verified rendering distinctly using a temporary `?debug`-gated synthetic
+  creature grid (bypasses camera/hand-tracking entirely — this dev environment has no camera). The
+  debug code was stripped before the final commit; it is not in shipped `app.js`.
+- `trailGhost` and `jellyWobble` specifically could only be confirmed by code review, not screenshot,
+  since they only read correctly once the creature is moving/bouncing — worth an explicit look on
+  Ham's phone.
 
 ## Next steps / open threads
 
 - **Nothing above has been tested on Ham's real phone yet.** Priority: verify FPS with 5 creatures (including while recording), Cam off/on, Flip, permission retry, backgrounding/return, and the new dialog/inert behavior doesn't trap focus somewhere unexpected.
+- **New from 2026-07-27 session, also unverified on phone:** the claymorphism visual pass (buttons/
+  icons/camera-off screen/recording feedback), the 16-color palette, and the bonus special-creature
+  system (particularly `trailGhost`/`jellyWobble` motion feel, and whether the ~10% special-spawn rate
+  feels right or needs tuning).
 - **Creature cap bumped 3 → 5** (Ham's call, explicit perf-risk tradeoff — see updated CLAUDE.md/SPEC.md/BUILD_PLAN.md/AGENTS.md). Unverified whether 5 holds ≥15fps on Ham's phone, especially mid-recording. If it doesn't, drop back toward 3-4.
 - LINE and Instagram share testing (text/URL/watermark survival, cancellation quietness, unsupported-share download) — not yet done on Ham's phone.
 - No friend/blind test done yet (P5's real verify: "a friend uses it with zero verbal instructions, creates a living creature within 2 minutes"). Do this before considering v1 fully done.
