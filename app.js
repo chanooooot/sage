@@ -129,7 +129,7 @@ function onResults(results) {
 const strokes = [];       // completed strokes: [{color, points:[{x,y}]}]
 let currentStroke = null;
 let currentColor = null;
-const COLORS = ['#ff5252', '#ffca28', '#4caf50', '#29b6f6', '#ab47bc', '#ff7043'];
+const COLORS = Array.from({ length: 16 }, (_, i) => `hsl(${Math.round(i * 360 / 16)}, 70%, 58%)`);
 
 let pinchVotes = [];       // last 3 raw pinch booleans (3-frame vote)
 let pinching = false;      // debounced/hysteresis state
@@ -247,6 +247,10 @@ function stepPhysics() {
 
 const creatures = [];
 const MAX_CREATURES = 5;
+const SPECIALS = ['rainbow', 'sparkle', 'glow', 'giant', 'shimmer', 'confetti', 'starryEyes', 'trailGhost', 'jellyWobble', 'orbitRing'];
+const SPECIAL_CHANCE = 0.1;
+const specialToastEl = document.getElementById('specialToast');
+let specialToastTimer = null;
 
 function bboxOfStrokes() {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -277,7 +281,10 @@ function bringAlive() {
     sctx.stroke();
   }
 
-  const radius = Math.max(w, h) / 2 * 1.1;
+  const special = Math.random() < SPECIAL_CHANCE ? SPECIALS[Math.floor(Math.random() * SPECIALS.length)] : null;
+  const sizeMult = special === 'giant' ? 1.6 : 1;
+
+  const radius = Math.max(w, h) / 2 * 1.1 * sizeMult;
   const body = Matter.Bodies.circle((minX + maxX) / 2, (minY + maxY) / 2, radius, {
     restitution: 0.6, friction: 0.05
   });
@@ -294,9 +301,32 @@ function bringAlive() {
     wigglePhase: Math.random() * Math.PI * 2,
     startleUntil: 0,
     dying: false, fadeStart: 0, opacity: 1,
-    spawnColor
+    spawnColor,
+    special, sizeMult,
+    specialSeed: Math.random() * 1000,
+    particles: [],
+    ghosts: [],
+    nextSparkle: 0
   };
   creatures.push(creature);
+
+  if (special) {
+    if (navigator.vibrate) navigator.vibrate([15, 40, 15]);
+    if (special === 'confetti') {
+      for (let i = 0; i < 14; i++) {
+        const a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 3;
+        creature.particles.push({
+          x: creature.body.position.x, y: creature.body.position.y,
+          vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+          born: performance.now(), life: 600,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)]
+        });
+      }
+    }
+    specialToastEl.classList.add('show');
+    clearTimeout(specialToastTimer);
+    specialToastTimer = setTimeout(() => specialToastEl.classList.remove('show'), 1500);
+  }
 
   if (creatures.length > MAX_CREATURES) {
     const oldest = creatures.find(c => !c.dying);
@@ -363,6 +393,18 @@ function easeOut(t) {
   return 1 - Math.pow(1 - t, 3);
 }
 
+function drawStar(cx, cy, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = (Math.PI / 5) * i - Math.PI / 2;
+    const rad = i % 2 === 0 ? r : r * 0.45;
+    const x = cx + Math.cos(a) * rad, y = cy + Math.sin(a) * rad;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawCreatures() {
   const now = performance.now();
   for (let i = creatures.length - 1; i >= 0; i--) {
@@ -381,34 +423,95 @@ function drawCreatures() {
     }
 
     const startled = now < c.startleUntil;
-    const breathe = 1.03 + 0.03 * Math.sin(now / 1000 * Math.PI);
-    const wiggle = Math.sin(now / 900 + c.wigglePhase) * 3 * Math.PI / 180;
+    const wobbleMult = c.special === 'jellyWobble' ? 2.5 : 1;
+    const breathe = 1 + 0.03 * wobbleMult * Math.sin(now / 1000 * Math.PI);
+    const wiggle = Math.sin(now / 900 + c.wigglePhase) * 3 * wobbleMult * Math.PI / 180;
     const scaleY = startled ? 0.85 : breathe;
     const scaleX = startled ? 1.15 : 1;
 
     const spawnT = Math.min(1, (now - c.born) / 250);
     const pop = spawnT < 1 ? easeOut(spawnT) : 1;
 
-    const burstT = Math.min(1, (now - c.born) / 450);
-    if (burstT < 1) {
-      ctx.save();
-      ctx.globalAlpha = (1 - burstT) * Math.max(0, c.opacity);
-      ctx.strokeStyle = c.spawnColor;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(c.body.position.x, c.body.position.y, c.body.circleRadius * (0.4 + 1.3 * burstT), 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
+    if (c.special) {
+      const fireworkT = Math.min(1, (now - c.born) / 800);
+      if (fireworkT < 1) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, c.opacity);
+        ctx.lineWidth = 3;
+        for (let ring = 0; ring < 3; ring++) {
+          const ringT = Math.min(1, Math.max(0, fireworkT - ring * 0.15) / 0.7);
+          if (ringT <= 0 || ringT >= 1) continue;
+          ctx.globalAlpha = (1 - ringT) * Math.max(0, c.opacity);
+          ctx.strokeStyle = `hsl(${(now / 3 + ring * 60) % 360}, 85%, 60%)`;
+          ctx.beginPath();
+          ctx.arc(c.body.position.x, c.body.position.y, c.body.circleRadius * (0.4 + 1.5 * ringT), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    } else {
+      const burstT = Math.min(1, (now - c.born) / 450);
+      if (burstT < 1) {
+        ctx.save();
+        ctx.globalAlpha = (1 - burstT) * Math.max(0, c.opacity);
+        ctx.strokeStyle = c.spawnColor;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(c.body.position.x, c.body.position.y, c.body.circleRadius * (0.4 + 1.3 * burstT), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
     }
 
     const rot = c.body.angle + wiggle;
+
+    if (c.special === 'trailGhost') {
+      if (!c.nextGhost || now >= c.nextGhost) {
+        c.ghosts.push({ x: c.body.position.x, y: c.body.position.y, rot, scaleX, scaleY, pop, born: now });
+        c.nextGhost = now + 90;
+        if (c.ghosts.length > 5) c.ghosts.shift();
+      }
+      for (const g of c.ghosts) {
+        const age = (now - g.born) / 450;
+        if (age >= 1) continue;
+        ctx.save();
+        ctx.globalAlpha = (1 - age) * 0.35 * Math.max(0, c.opacity);
+        ctx.translate(g.x, g.y);
+        ctx.rotate(g.rot);
+        ctx.scale(g.scaleX * g.pop, g.scaleY * g.pop);
+        ctx.drawImage(c.sprite, -c.w / 2, -c.h / 2);
+        ctx.restore();
+      }
+      c.ghosts = c.ghosts.filter(g => (now - g.born) / 450 < 1);
+    }
 
     ctx.save();
     ctx.globalAlpha = Math.max(0, c.opacity);
     ctx.translate(c.body.position.x, c.body.position.y);
     ctx.rotate(rot);
-    ctx.scale(scaleX * pop, scaleY * pop);
+    ctx.scale(scaleX * pop * c.sizeMult, scaleY * pop * c.sizeMult);
+
+    if (c.special === 'glow') {
+      ctx.shadowColor = c.spawnColor;
+      ctx.shadowBlur = 16 + 8 * Math.sin(now / 400);
+    }
     ctx.drawImage(c.sprite, -c.w / 2, -c.h / 2);
+    ctx.shadowBlur = 0;
+
+    if (c.special === 'shimmer') {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(c.w, c.h) / 2, 0, Math.PI * 2);
+      ctx.clip();
+      const sweep = ((now / 1400 + c.specialSeed) % 1) * (c.w + c.h) - c.h;
+      const grad = ctx.createLinearGradient(sweep - c.h / 2, -c.h / 2, sweep + c.h / 2, c.h / 2);
+      grad.addColorStop(0, 'rgba(255,255,255,0)');
+      grad.addColorStop(0.5, 'rgba(255,255,255,0.85)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+      ctx.restore();
+    }
 
     if (spawnT >= 0.3) {
       // eyes: local space (upper third of sprite), so they tumble with the body
@@ -444,15 +547,71 @@ function drawCreatures() {
             dx = (dx / d) * (eyeR * 0.4);
             dy = (dy / d) * (eyeR * 0.4);
           }
-          ctx.fillStyle = '#000';
-          ctx.beginPath();
-          ctx.arc(ex + dx, eyeY + dy, startled ? 2 : eyeR * 0.4, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.fillStyle = c.special === 'starryEyes' ? '#FFC107' : '#000';
+          if (c.special === 'starryEyes' && !startled) {
+            drawStar(ex + dx, eyeY + dy, eyeR * 0.55);
+          } else {
+            ctx.beginPath();
+            ctx.arc(ex + dx, eyeY + dy, startled ? 2 : eyeR * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       }
     }
 
     ctx.restore();
+
+    if (c.special === 'rainbow') {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, c.opacity);
+      ctx.strokeStyle = `hsl(${(now / 4 + c.specialSeed) % 360}, 85%, 60%)`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(c.body.position.x, c.body.position.y, c.body.circleRadius * c.sizeMult + 3, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (c.special === 'orbitRing') {
+      ctx.save();
+      ctx.globalAlpha = 0.8 * Math.max(0, c.opacity);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(c.body.position.x, c.body.position.y, c.body.circleRadius * c.sizeMult * 1.4, c.body.circleRadius * c.sizeMult * 0.4,
+        now / 500 + c.specialSeed, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (c.special === 'sparkle' && !c.dying) {
+      if (now >= c.nextSparkle) {
+        const a = Math.random() * Math.PI * 2;
+        const r = c.body.circleRadius * c.sizeMult;
+        c.particles.push({
+          x: c.body.position.x + Math.cos(a) * r, y: c.body.position.y + Math.sin(a) * r,
+          vx: Math.cos(a) * 0.4, vy: Math.sin(a) * 0.4 - 0.6,
+          born: now, life: 700, color: '#FFD54F'
+        });
+        c.nextSparkle = now + 220;
+      }
+    }
+
+    if (c.particles.length) {
+      for (const p of c.particles) {
+        const age = (now - p.born) / p.life;
+        if (age >= 1) continue;
+        p.x += p.vx; p.y += p.vy;
+        ctx.save();
+        ctx.globalAlpha = (1 - age) * Math.max(0, c.opacity);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      c.particles = c.particles.filter(p => (now - p.born) / p.life < 1);
+    }
   }
 }
 
