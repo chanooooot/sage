@@ -48,7 +48,7 @@
     font-family: 'Fredoka', system-ui, sans-serif;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+    transition: transform 120ms ease-out, box-shadow 120ms ease-out, opacity 120ms ease-out;
   }
   button:active {
     transform: scale(0.93);
@@ -65,16 +65,17 @@
     z-index: 10;
     width: 44px;
     height: 44px;
-    font-size: 20px;
     border-radius: 50%;
     border: none;
-    background: #fff;
-    color: var(--color-ink);
-    box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.25);
+    background: linear-gradient(155deg, #fff, #f0f0f0);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15), 0 3px 8px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   #flipBtn { right: 10px; }
-  #camBtn { right: 62px; font-size: 18px; }
-  #camBtn.off { background: var(--color-danger-dark); color: #fff; }
+  #camBtn { right: 62px; }
+  #camBtn.off { background: linear-gradient(155deg, #F87171, var(--color-danger-dark)); }
   #flipBtn:disabled { opacity: 0.4; cursor: not-allowed; }
   #fps {
     position: fixed;
@@ -89,26 +90,39 @@
   #retry {
     position: fixed;
     inset: 0;
+    z-index: 20;
     display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 22px;
     color: #fff;
     text-align: center;
     padding: 32px;
-    background: rgba(15,15,20,0.9);
+    background: linear-gradient(165deg, rgba(91,33,182,0.90), rgba(190,24,93,0.78));
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
   }
-  #retry p { font-size: 17px; line-height: 1.6; max-width: 320px; }
+  #retry .box {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(155deg, #F87171, #DC2626);
+    box-shadow: 0 4px 0 #7f1414, 0 6px 14px rgba(0,0,0,0.35);
+  }
+  #retry p { margin: 0; font-size: 15px; font-family: system-ui, sans-serif; line-height: 1.6; max-width: 300px; color: rgba(255,255,255,0.8); }
   #retry button, #startCameraBtn {
-    padding: 14px 28px;
-    font-size: 16px;
+    padding: 16px 38px;
+    font-size: 17px;
     font-weight: 600;
-    border-radius: 16px;
+    border-radius: 20px;
     border: none;
-    background: var(--color-primary-dark);
+    background: linear-gradient(155deg, #FF9A4D, var(--color-primary));
     color: #fff;
-    box-shadow: 0 4px 0 #7a2a08, 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 0 var(--color-primary-dark), 0 8px 18px rgba(0,0,0,0.35);
   }
   #bottomBar {
     position: fixed;
@@ -116,52 +130,94 @@
     bottom: 0;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    padding: 14px 10px calc(14px + env(safe-area-inset-bottom));
+    gap: 8px;
+    padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
     z-index: 10;
   }
   #bottomBar button {
-    min-height: 44px;
-    padding: 10px 6px;
-    font-size: 14px;
+    min-height: 52px;
+    padding: 8px 6px;
+    font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     border-radius: 22px;
     border: none;
-    background: #fff;
+    background: linear-gradient(155deg, #fff, #f5f5f5);
     color: var(--color-ink);
-    box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.25);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15), 0 3px 8px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+  #bottomBar button .icon {
+    display: flex;
+    align-items: center;
+    gap: 5px;
   }
   #aliveBtn {
-    background: var(--color-accent);
+    background: linear-gradient(155deg, #A78BFA, var(--color-accent));
     color: #fff;
-    box-shadow: 0 3px 0 var(--color-accent-dark), 0 2px 6px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 0 var(--color-accent-dark), 0 3px 8px rgba(0,0,0,0.3);
   }
   #colorSwatch {
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     background: transparent;
-    border: 1px solid rgba(255,255,255,0.6);
-    vertical-align: middle;
-    margin-right: 2px;
+    border: 1px solid rgba(255,255,255,0.7);
   }
   #recordBtn.recording {
-    background: var(--color-danger-dark);
+    background: linear-gradient(155deg, #F87171, #DC2626);
     color: #fff;
-    box-shadow: 0 3px 0 #7f1414, 0 2px 6px rgba(0,0,0,0.3);
-    animation: recPulse 1s ease-in-out infinite;
+    box-shadow: 0 4px 0 #7f1414, 0 0 16px 4px rgba(239,68,68,0.55);
+    animation: recPulse 1.4s ease-in-out infinite;
   }
   @keyframes recPulse {
-    0%, 100% { box-shadow: 0 3px 0 #7f1414, 0 2px 6px rgba(0,0,0,0.3); }
-    50% { box-shadow: 0 3px 0 #7f1414, 0 2px 16px 4px rgba(239,68,68,0.6); }
+    0%, 100% { box-shadow: 0 4px 0 #7f1414, 0 0 0 0 rgba(239,68,68,0.55); }
+    50% { box-shadow: 0 4px 0 #7f1414, 0 0 16px 6px rgba(239,68,68,0.55); }
   }
   @media (prefers-reduced-motion: reduce) {
     #recordBtn.recording { animation: none; }
   }
+  /* recording feedback: dim non-record controls + pulsing frame border, CSS-only */
+  #bottomBar:has(#recordBtn.recording) button:not(#recordBtn),
+  body:has(#recordBtn.recording) #flipBtn,
+  body:has(#recordBtn.recording) #camBtn {
+    opacity: 0.55;
+  }
+  body:has(#recordBtn.recording)::after {
+    content: '';
+    position: fixed;
+    inset: 8px;
+    border-radius: 44px;
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.6), 0 0 22px 4px rgba(239,68,68,0.4);
+    pointer-events: none;
+    z-index: 9;
+  }
+  #recTimer {
+    position: fixed;
+    top: max(58px, calc(env(safe-area-inset-top) + 48px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: rgba(239,68,68,0.92);
+    color: #fff;
+    font-family: 'Fredoka', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+  #recTimer.show { display: flex; }
+  #recTimer .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
   #idleHint {
     position: fixed;
     left: 50%;
@@ -169,6 +225,8 @@
     transform: translateX(-50%);
     z-index: 9;
     display: none;
+    align-items: center;
+    gap: 6px;
     padding: 8px 16px;
     border-radius: 16px;
     background: rgba(0,0,0,0.55);
@@ -178,7 +236,7 @@
     pointer-events: none;
   }
   #idleHint.show {
-    display: block;
+    display: flex;
     animation: hintPulse 1.6s ease-in-out infinite;
   }
   @keyframes hintPulse {
@@ -196,19 +254,36 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 26px;
     color: #fff;
     text-align: center;
-    padding: 32px;
-    background: rgba(15,15,20,0.82);
+    padding: 28px;
+    background: linear-gradient(165deg, rgba(91,33,182,0.90), rgba(190,24,93,0.78));
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
   }
-  #firstRun .icons { font-size: 44px; letter-spacing: 20px; }
+  #firstRun .icons { display: flex; gap: 18px; }
+  #firstRun .iconChip { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  #firstRun .iconChip .box {
+    width: 56px;
+    height: 56px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #firstRun .iconChip span { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); }
+  #firstRun .iconChip:nth-child(1) .box { background: linear-gradient(155deg, #60A5FA, #2563EB); box-shadow: 0 4px 0 #1E40AF, 0 6px 14px rgba(0,0,0,0.35); }
+  #firstRun .iconChip:nth-child(2) .box { background: linear-gradient(155deg, #A78BFA, #7C3AED); box-shadow: 0 4px 0 #5B21B6, 0 6px 14px rgba(0,0,0,0.35); }
+  #firstRun .iconChip:nth-child(3) .box { background: linear-gradient(155deg, #F9A8D4, #EC4899); box-shadow: 0 4px 0 #BE185D, 0 6px 14px rgba(0,0,0,0.35); }
+  #firstRun h1 { margin: 0; font-size: 24px; font-weight: 700; }
   #firstRun p {
-    font-size: 18px;
-    line-height: 1.7;
-    max-width: 320px;
+    margin: 0;
+    font-size: 15px;
+    font-family: system-ui, sans-serif;
+    line-height: 1.6;
+    max-width: 300px;
+    color: rgba(255,255,255,0.8);
     text-wrap: pretty;
   }
 </style>
@@ -217,27 +292,34 @@
   <video id="cam" autoplay playsinline muted></video>
   <canvas id="overlay"></canvas>
   <div id="fps"></div>
-  <button id="camBtn" aria-label="Turn camera on or off" aria-pressed="true">📷</button>
-  <button id="flipBtn" aria-label="Flip front/back camera">🔄</button>
+  <button id="camBtn" aria-label="Turn camera on or off" aria-pressed="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="#1F2937"><rect x="1" y="5" width="14" height="11" rx="3"/><path d="M15 8 L19 5.5 V13.5 L15 11 Z"/><circle cx="8" cy="10.5" r="3" fill="#fff"/></svg></button>
+  <button id="flipBtn" aria-label="Flip front/back camera"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#1F2937" stroke-width="1.8" stroke-linecap="round"><path d="M4 7a6 6 0 0 1 10-3l1.5 1.5"/><path d="M16 13a6 6 0 0 1-10 3L4.5 14.5"/><path d="M13.5 3.5 15.5 5.5 13.5 7.5" fill="#1F2937" stroke="none"/><path d="M6.5 16.5 4.5 14.5 6.5 12.5" fill="#1F2937" stroke="none"/></svg></button>
   <div id="bottomBar">
-    <button id="aliveBtn"><span id="colorSwatch"></span> Alive</button>
-    <button id="recordBtn">⏺ Record</button>
-    <button id="undoBtn">↩️ Undo</button>
-    <button id="clearBtn">🗑 Clear</button>
+    <button id="aliveBtn"><span class="icon"><svg width="14" height="14" viewBox="0 0 26 26" fill="#fff"><path d="M13 3 L15.2 10.8 L23 13 L15.2 15.2 L13 23 L10.8 15.2 L3 13 L10.8 10.8 Z"/></svg><span id="colorSwatch"></span></span>Alive</button>
+    <button id="recordBtn"><span class="icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="#EF4444"><circle cx="10" cy="10" r="7"/></svg></span>Record</button>
+    <button id="undoBtn"><span class="icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#1F2937" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5 L2 9 L6 13"/><path d="M2 9 H12 a5 5 0 0 1 0 10 H8"/></svg></span>Undo</button>
+    <button id="clearBtn"><span class="icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#1F2937" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6 H16"/><path d="M7 6 V4 a1 1 0 0 1 1-1 h4 a1 1 0 0 1 1 1 v2"/><path d="M6 6 L6.8 17 a1.5 1.5 0 0 0 1.5 1.4 h3.4 a1.5 1.5 0 0 0 1.5-1.4 L14 6"/></svg></span>Clear</button>
   </div>
-  <div id="idleHint">Pinch to draw ✏️</div>
+  <div id="recTimer"><span class="dot"></span><span id="recTimerText">0:00</span></div>
+  <div id="idleHint"><svg width="14" height="14" viewBox="0 0 20 20" fill="#fff"><circle cx="6" cy="6" r="3.5"/><circle cx="14" cy="14" r="3.5" fill-opacity="0.6"/></svg>Pinch to draw</div>
   <div id="firstRun" role="dialog" aria-modal="true" aria-labelledby="firstRunText">
-    <div class="icons" aria-hidden="true">📱🤏✊👋</div>
-    <p id="firstRunText">Prop up your phone. Pinch thumb + index finger to draw. Hold a fist to bring it alive.</p>
+    <div class="icons" aria-hidden="true">
+      <div class="iconChip"><div class="box">🤏</div><span>Pinch</span></div>
+      <div class="iconChip"><div class="box">✊</div><span>Fist, 0.6s</span></div>
+      <div class="iconChip"><div class="box">✨</div><span>Alive!</span></div>
+    </div>
+    <h1>Bring your doodle to life</h1>
+    <p id="firstRunText">Prop up your phone. Pinch thumb + index to draw. Hold a fist to bring it alive.</p>
     <button id="startCameraBtn">Start camera</button>
   </div>
   <div id="retry" role="dialog" aria-modal="true" aria-labelledby="retryText">
+    <div class="box" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.6"><rect x="1" y="5" width="14" height="11" rx="3"/><path d="M15 8 L19 5.5 V13.5 L15 11 Z" fill="#fff" stroke="none"/><path d="M2 2 L18 18" stroke-linecap="round"/></svg></div>
     <p id="retryText">Camera access denied or unavailable.<br>AirDoodle needs your front camera to see your hand — please allow it and try again.</p>
     <button id="retryBtn">Try Again</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="app.js?v=35"></script>
+  <script src="app.js?v=36"></script>
 </body>
 </html>

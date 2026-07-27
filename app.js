@@ -79,19 +79,22 @@ document.getElementById('startCameraBtn').addEventListener('click', () => {
 updateBackgroundInert();
 document.getElementById('startCameraBtn').focus();
 
+const CAM_ICON = '<svg width="20" height="20" viewBox="0 0 20 20" fill="#1F2937"><rect x="1" y="5" width="14" height="11" rx="3"/><path d="M15 8 L19 5.5 V13.5 L15 11 Z"/><circle cx="8" cy="10.5" r="3" fill="#fff"/></svg>';
+const PLAY_ICON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="#fff"><path d="M5 3 L17 10 L5 17 Z"/></svg>';
+
 let cameraOn = true;
 camBtn.addEventListener('click', () => {
   if (cameraOn) {
     if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
     video.srcObject = null;
     cameraOn = false;
-    camBtn.textContent = '▶️';
+    camBtn.innerHTML = PLAY_ICON;
     camBtn.classList.add('off');
     camBtn.setAttribute('aria-pressed', 'false');
     flipBtn.disabled = true;
   } else {
     cameraOn = true;
-    camBtn.textContent = '📷';
+    camBtn.innerHTML = CAM_ICON;
     camBtn.classList.remove('off');
     camBtn.setAttribute('aria-pressed', 'true');
     flipBtn.disabled = false;
@@ -562,7 +565,7 @@ function startHandTracking() {
 
     drawStrokes();
     drawCreatures();
-    if (recording) compositeFrame();
+    if (recording) { compositeFrame(); updateRecTimer(); }
 
     frames++;
     const now = performance.now();
@@ -608,10 +611,22 @@ function compositeFrame() {
   drawWatermark(rctx, recCanvas.width, recCanvas.height); // unmirrored, drawn outside the flip
 }
 
+const REC_ICON = '<span class="icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="#EF4444"><circle cx="10" cy="10" r="7"/></svg></span>Record';
+const STOP_ICON = '<span class="icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="#fff"><rect x="6" y="6" width="8" height="8" rx="2"/></svg></span>Stop';
+
 function flashRecordBtn(text) {
-  const prevText = recordBtn.textContent;
+  const prevHTML = recordBtn.innerHTML;
   recordBtn.textContent = text;
-  setTimeout(() => { recordBtn.textContent = prevText; }, 2000);
+  setTimeout(() => { recordBtn.innerHTML = prevHTML; }, 2000);
+}
+
+const recTimerEl = document.getElementById('recTimer');
+const recTimerTextEl = document.getElementById('recTimerText');
+let recordStartTime = 0;
+
+function updateRecTimer() {
+  const s = Math.floor((performance.now() - recordStartTime) / 1000);
+  recTimerTextEl.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
 const SHARE_TEXT = 'I drew this in the air and brought it to life ✨ Make yours:';
@@ -683,8 +698,9 @@ function startRecording() {
   mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
   mediaRecorder.onstop = () => {
     recording = false;
-    recordBtn.textContent = '⏺ Record';
+    recordBtn.innerHTML = REC_ICON;
     recordBtn.classList.remove('recording');
+    recTimerEl.classList.remove('show');
     // strip codec params (e.g. ";codecs=avc1.42E01E") — iOS Photos' Save Video
     // import matches on a clean MIME type, not a parameterized one
     const outType = (mediaRecorder.mimeType || mimeType || 'video/mp4').split(';')[0];
@@ -693,8 +709,11 @@ function startRecording() {
   };
   mediaRecorder.start();
   recording = true;
-  recordBtn.textContent = '⏹ Stop';
+  recordStartTime = performance.now();
+  recordBtn.innerHTML = STOP_ICON;
   recordBtn.classList.add('recording');
+  recTimerEl.classList.add('show');
+  updateRecTimer();
   stopTimer = setTimeout(() => stopRecording(), 15000);
 }
 
