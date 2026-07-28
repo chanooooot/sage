@@ -53,31 +53,40 @@
 
 const video = document.getElementById('cam');
 const retry = document.getElementById('retry');
-const firstRun = document.getElementById('firstRun');
+const titleScreen = document.getElementById('titleScreen');
+const tutorialScreen = document.getElementById('tutorialScreen');
 const idleHintEl = document.getElementById('idleHint');
 const bottomBar = document.getElementById('bottomBar');
 const camBtn = document.getElementById('camBtn');
 const flipBtn = document.getElementById('flipBtn');
 let cameraStartTime = null;
 
-// first-run/retry are modal dialogs: block the background controls while shown
+// title/tutorial/retry are modal dialogs: block the background controls while shown
 function updateBackgroundInert() {
-  const blocked = firstRun.style.display !== 'none' || retry.style.display === 'flex';
+  const blocked = titleScreen.style.display !== 'none'
+    || tutorialScreen.style.display !== 'none'
+    || retry.style.display === 'flex';
   camBtn.inert = blocked;
   flipBtn.inert = blocked;
   bottomBar.inert = blocked;
 }
 
-function dismissFirstRun() {
-  firstRun.style.display = 'none';
+function goToPlay() {
+  titleScreen.style.display = 'none';
+  tutorialScreen.style.display = 'none';
   updateBackgroundInert();
-}
-document.getElementById('startCameraBtn').addEventListener('click', () => {
-  dismissFirstRun();
   if (!trackingStarted) startCamera();
+}
+
+document.getElementById('playBtn').addEventListener('click', goToPlay);
+document.getElementById('tutorialPlayBtn').addEventListener('click', goToPlay);
+document.getElementById('howToPlayBtn').addEventListener('click', () => {
+  titleScreen.style.display = 'none';
+  tutorialScreen.style.display = 'flex';
+  updateBackgroundInert();
 });
 updateBackgroundInert();
-document.getElementById('startCameraBtn').focus();
+document.getElementById('playBtn').focus();
 
 const CAM_ICON = '<svg width="20" height="20" viewBox="0 0 20 20" fill="#1F2937"><rect x="1" y="5" width="14" height="11" rx="3"/><path d="M15 8 L19 5.5 V13.5 L15 11 Z"/><circle cx="8" cy="10.5" r="3" fill="#fff"/></svg>';
 const PLAY_ICON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="#fff"><path d="M5 3 L17 10 L5 17 Z"/></svg>';

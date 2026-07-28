@@ -137,7 +137,7 @@
     box-shadow: 0 4px 0 #7f1414, 0 6px 14px rgba(0,0,0,0.35);
   }
   #retry p { margin: 0; font-size: 15px; font-family: system-ui, sans-serif; line-height: 1.6; max-width: 300px; color: rgba(255,255,255,0.8); }
-  #retry button, #startCameraBtn {
+  #retry button, #titleScreen button, #tutorialScreen button {
     padding: 16px 38px;
     font-size: 17px;
     font-weight: 600;
@@ -295,7 +295,7 @@
   @media (prefers-reduced-motion: reduce) {
     #idleHint.show { animation: none; opacity: 0.9; }
   }
-  #firstRun {
+  #titleScreen, #tutorialScreen {
     position: fixed;
     inset: 0;
     z-index: 20;
@@ -311,9 +311,9 @@
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
   }
-  #firstRun .icons { display: flex; gap: 18px; }
-  #firstRun .iconChip { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  #firstRun .iconChip .box {
+  #titleScreen .icons, #tutorialScreen .icons { display: flex; gap: 18px; }
+  #titleScreen .iconChip, #tutorialScreen .iconChip { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  #titleScreen .iconChip .box, #tutorialScreen .iconChip .box {
     width: 56px;
     height: 56px;
     border-radius: 20px;
@@ -321,12 +321,12 @@
     align-items: center;
     justify-content: center;
   }
-  #firstRun .iconChip span { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); }
-  #firstRun .iconChip:nth-child(1) .box { background: linear-gradient(155deg, #60A5FA, #2563EB); box-shadow: 0 4px 0 #1E40AF, 0 6px 14px rgba(0,0,0,0.35); }
-  #firstRun .iconChip:nth-child(2) .box { background: linear-gradient(155deg, #A78BFA, #7C3AED); box-shadow: 0 4px 0 #5B21B6, 0 6px 14px rgba(0,0,0,0.35); }
-  #firstRun .iconChip:nth-child(3) .box { background: linear-gradient(155deg, #F9A8D4, #EC4899); box-shadow: 0 4px 0 #BE185D, 0 6px 14px rgba(0,0,0,0.35); }
-  #firstRun h1 { margin: 0; font-size: 24px; font-weight: 700; }
-  #firstRun p {
+  #titleScreen .iconChip span, #tutorialScreen .iconChip span { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); }
+  #titleScreen .iconChip:nth-child(1) .box, #tutorialScreen .iconChip:nth-child(1) .box { background: linear-gradient(155deg, #60A5FA, #2563EB); box-shadow: 0 4px 0 #1E40AF, 0 6px 14px rgba(0,0,0,0.35); }
+  #titleScreen .iconChip:nth-child(2) .box, #tutorialScreen .iconChip:nth-child(2) .box { background: linear-gradient(155deg, #A78BFA, #7C3AED); box-shadow: 0 4px 0 #5B21B6, 0 6px 14px rgba(0,0,0,0.35); }
+  #titleScreen .iconChip:nth-child(3) .box, #tutorialScreen .iconChip:nth-child(3) .box { background: linear-gradient(155deg, #F9A8D4, #EC4899); box-shadow: 0 4px 0 #BE185D, 0 6px 14px rgba(0,0,0,0.35); }
+  #titleScreen h1, #tutorialScreen h1 { margin: 0; font-size: 24px; font-weight: 700; }
+  #titleScreen p, #tutorialScreen p {
     margin: 0;
     font-size: 15px;
     font-family: system-ui, sans-serif;
@@ -334,6 +334,12 @@
     max-width: 300px;
     color: rgba(255,255,255,0.8);
     text-wrap: pretty;
+  }
+  #howToPlayBtn.secondary {
+    background: transparent;
+    box-shadow: none;
+    border: 2px solid rgba(255,255,255,0.6);
+    color: #fff;
   }
 </style>
 </head>
@@ -353,15 +359,21 @@
   <div id="recTimer"><span class="dot"></span><span id="recTimerText">0:00</span></div>
   <div id="idleHint"><svg width="14" height="14" viewBox="0 0 20 20" fill="#fff"><circle cx="6" cy="6" r="3.5"/><circle cx="14" cy="14" r="3.5" fill-opacity="0.6"/></svg>Pinch to draw</div>
   <div id="specialToast">✨ Special creature!</div>
-  <div id="firstRun" role="dialog" aria-modal="true" aria-labelledby="firstRunText">
+  <div id="titleScreen" role="dialog" aria-modal="true" aria-labelledby="titleText">
+    <h1 id="titleText">AirDoodle</h1>
+    <p>Draw in the air. Bring it to life.</p>
+    <button id="playBtn">Play</button>
+    <button id="howToPlayBtn" class="secondary">How to Play</button>
+  </div>
+  <div id="tutorialScreen" role="dialog" aria-modal="true" aria-labelledby="tutorialText" style="display:none">
     <div class="icons" aria-hidden="true">
       <div class="iconChip"><div class="box">🤏</div><span>Pinch</span></div>
       <div class="iconChip"><div class="box">✊</div><span>Fist</span></div>
       <div class="iconChip"><div class="box">✨</div><span>Alive!</span></div>
     </div>
-    <h1>Bring your doodle to life</h1>
-    <p id="firstRunText">Prop up your phone. Pinch thumb + index to draw. Hold a fist to bring it alive.</p>
-    <button id="startCameraBtn">Start camera</button>
+    <h1>How to play</h1>
+    <p id="tutorialText">Prop up your phone. Pinch thumb + index to draw. Hold a fist to bring it alive.</p>
+    <button id="tutorialPlayBtn">Play</button>
   </div>
   <div id="retry" role="dialog" aria-modal="true" aria-labelledby="retryText">
     <div class="box" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.6"><rect x="1" y="5" width="14" height="11" rx="3"/><path d="M15 8 L19 5.5 V13.5 L15 11 Z" fill="#fff" stroke="none"/><path d="M2 2 L18 18" stroke-linecap="round"/></svg></div>
@@ -371,6 +383,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="app.js?v=39"></script>
+  <script src="app.js?v=40"></script>
 </body>
 </html>
