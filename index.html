@@ -311,20 +311,6 @@
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
   }
-  #titleScreen .icons, #tutorialScreen .icons { display: flex; gap: 18px; }
-  #titleScreen .iconChip, #tutorialScreen .iconChip { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  #titleScreen .iconChip .box, #tutorialScreen .iconChip .box {
-    width: 56px;
-    height: 56px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  #titleScreen .iconChip span, #tutorialScreen .iconChip span { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); }
-  #titleScreen .iconChip:nth-child(1) .box, #tutorialScreen .iconChip:nth-child(1) .box { background: linear-gradient(155deg, #60A5FA, #2563EB); box-shadow: 0 4px 0 #1E40AF, 0 6px 14px rgba(0,0,0,0.35); }
-  #titleScreen .iconChip:nth-child(2) .box, #tutorialScreen .iconChip:nth-child(2) .box { background: linear-gradient(155deg, #A78BFA, #7C3AED); box-shadow: 0 4px 0 #5B21B6, 0 6px 14px rgba(0,0,0,0.35); }
-  #titleScreen .iconChip:nth-child(3) .box, #tutorialScreen .iconChip:nth-child(3) .box { background: linear-gradient(155deg, #F9A8D4, #EC4899); box-shadow: 0 4px 0 #BE185D, 0 6px 14px rgba(0,0,0,0.35); }
   #titleScreen h1, #tutorialScreen h1 { margin: 0; font-size: 24px; font-weight: 700; }
   #titleScreen p, #tutorialScreen p {
     margin: 0;
@@ -335,12 +321,23 @@
     color: rgba(255,255,255,0.8);
     text-wrap: pretty;
   }
-  #howToPlayBtn.secondary {
-    background: transparent;
-    box-shadow: none;
-    border: 2px solid rgba(255,255,255,0.6);
-    color: #fff;
+  #tutorialScreen .steps { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 300px; }
+  #tutorialScreen .step { display: flex; align-items: center; gap: 14px; text-align: left; }
+  #tutorialScreen .step .num {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.35);
   }
+  #tutorialScreen .step .emoji { flex: none; font-size: 26px; }
+  #tutorialScreen .step p { margin: 0; font-size: 14px; max-width: none; }
 </style>
 </head>
 <body class="mirrored">
@@ -363,16 +360,15 @@
     <h1 id="titleText">AirDoodle</h1>
     <p>Draw in the air. Bring it to life.</p>
     <button id="playBtn">Play</button>
-    <button id="howToPlayBtn" class="secondary">How to Play</button>
+    <button id="howToPlayBtn">How to Play</button>
   </div>
   <div id="tutorialScreen" role="dialog" aria-modal="true" aria-labelledby="tutorialText" style="display:none">
-    <div class="icons" aria-hidden="true">
-      <div class="iconChip"><div class="box">🤏</div><span>Pinch</span></div>
-      <div class="iconChip"><div class="box">✊</div><span>Fist</span></div>
-      <div class="iconChip"><div class="box">✨</div><span>Alive!</span></div>
+    <h1 id="tutorialText">How to play</h1>
+    <div class="steps">
+      <div class="step"><span class="num">1</span><span class="emoji" aria-hidden="true">🤏</span><p>Pinch thumb + index to draw</p></div>
+      <div class="step"><span class="num">2</span><span class="emoji" aria-hidden="true">✊</span><p>Hold a fist to bring it alive</p></div>
+      <div class="step"><span class="num">3</span><span class="emoji" aria-hidden="true">✨</span><p>Watch your doodle come alive!</p></div>
     </div>
-    <h1>How to play</h1>
-    <p id="tutorialText">Prop up your phone. Pinch thumb + index to draw. Hold a fist to bring it alive.</p>
     <button id="tutorialPlayBtn">Play</button>
   </div>
   <div id="retry" role="dialog" aria-modal="true" aria-labelledby="retryText">
@@ -383,6 +379,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="app.js?v=40"></script>
+  <script src="app.js?v=41"></script>
 </body>
 </html>
