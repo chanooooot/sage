@@ -1,6 +1,6 @@
 # HANDOFF — AirDoodle
 
-**Last updated:** 2026-07-27 (claymorphism design pass, camera-off screen, 16-color palette, bonus special creatures)
+**Last updated:** 2026-07-29 (title/tutorial screen split, full hand-drawn sketch restyle)
 **Live URL:** https://chanooooot.github.io/airdoodle/ (repo: chanooooot/airdoodle, public — renamed from `sage` today; old `/sage/` links redirect via GitHub for a while, not forever)
 **App name:** AirDoodle (renamed from AirToon — title, share sheet, filenames, all docs updated)
 
@@ -47,7 +47,31 @@ backlogged — only the actual blocker was fixed.
 
 ## Cache-busting note
 
-`index.html` loads `app.js?v=N` — **bump the version number every time app.js changes** or GitHub Pages/mobile Safari caching will serve stale JS during testing. Currently at v39.
+`index.html` loads `app.js?v=N` — **bump the version number every time app.js changes** or GitHub Pages/mobile Safari caching will serve stale JS during testing. Currently at v44.
+
+## Title screen + tutorial + full sketch restyle (2026-07-29)
+
+Replaced the old single "Start camera" first-run overlay with a proper title screen, and then did a full visual restyle. Nothing below has been verified on Ham's real phone yet.
+
+**Title/tutorial split (`index.html`, `app.js`):**
+- `#firstRun` replaced by `#titleScreen` (Play + How to Play buttons, no camera prompt yet) and `#tutorialScreen` (pinch/fist/alive steps 1-2-3, ends in its own Play button). Camera only starts (`startCamera()`) once a Play button is actually pressed, not on page load.
+- Browser/hardware back button while on the tutorial screen used to leave the SPA and land on a stale cached copy of the page (no history entry existed for it). Fixed: `howToPlayBtn` pushes a `history` state, a `popstate` listener returns to the title screen in-app; `goToPlay()` cleans the pushed state up via `history.back()` (guarded with `suppressPopstate` so it doesn't re-trigger the same handler).
+- `updateBackgroundInert()` now blocks background controls (`camBtn`/`flipBtn`/`bottomBar`) while either screen is shown, same dialog-inert pattern as before.
+
+**Full hand-drawn/sketch restyle (`index.html`, CSS only + one `app.js` manifest color):**
+Ham asked how to make the app look less AI-generated; `ui-ux-pro-max` flagged the blurred purple-to-pink glassmorphism dialog gradient as a textbook AI-template tell. Replaced app-wide with a "Sketch Hand-Drawn (Mobile)" treatment:
+- New tokens: `--paper-bg` (#FDFBF7), `--ink` (#2D2D2D), `--marker-red`, `--postit-yellow`.
+- All dialogs (`#titleScreen`, `#tutorialScreen`, `#retry`, `#camOffScreen`) went from blurred purple/pink gradient + white text to solid paper background + ink text, no `backdrop-filter`.
+- Every card/button/pill app-wide (dialog boxes, bottom bar, `#aliveBtn`, `#recordBtn`, `#specialToast`, `#recTimer`, `#idleHint`, `#flipBtn`/`#camBtn`) gained a `3px solid var(--ink)` border, asymmetric wobbly `border-radius`, hard offset shadow (`Npx Npx 0 var(--ink)`, no blur) replacing the old soft drop-shadow recipe, and a couple degrees of fixed rotation (skipped on the circular cam/flip buttons).
+- Global `button:active` now shifts the button to visually cover its own shadow (`translate(3px,3px)`, shadow removed) instead of the old scale-down — the "press squishes into the shadow" hand-drawn UI convention.
+- Small hand-drawn squiggle SVG added under the `#titleScreen` heading.
+- `<meta name="theme-color">` and the PWA manifest's `theme_color` (in `app.js`) updated to the paper tone so OS chrome/installed-icon match.
+- Font intentionally kept as Fredoka everywhere (not swapped to Kalam/Patrick Hand) — a full font swap on top of the color/shape overhaul was judged a bigger, unnecessary risk; flagged to Ham as an explicit call he can override.
+- Duplicate/near-duplicate raw hex colors that existed before this pass (a red-gradient trio repeated 3x, the retry/title purple-pink gradient stops) were tokenized into `--color-danger-light/-mid/-shadow/-rgb` and `--color-accent-rgb`/`--color-accent-pink-rgb` CSS vars in a separate small cleanup, so future palette changes only need one edit.
+- Follow-up polish: title-screen tagline switched from generic `system-ui` to the Fredoka brand font; the "rare creatures" line turned from bare colored text into an actual rotated sticky-note badge (`--postit-yellow` bg, ink border, hard shadow) to match the rest of the sketch language. One em-dash found and removed from the camera-denied dialog copy (`#retryText`) per a `design-taste-frontend` copy audit.
+- A hypothetical alternative direction (claymorphism/soft-3D toy UI) was mocked up in a standalone artifact for Ham to look at — he preferred the shipped sketch theme, no change made.
+
+**Not yet verified on Ham's phone:** title screen -> How to Play -> Play flow, back-button behavior on both screens, camera-denied dialog still appearing correctly, and the full sketch restyle across every touched surface (paper bg with no leftover purple/blur anywhere, ink borders/hard shadows visible, buttons visually pressing into their shadow on tap).
 
 ## Improvement plan — implemented (2026-07-26)
 
