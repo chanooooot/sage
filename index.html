@@ -20,7 +20,13 @@
     --color-accent: #7C3AED;
     --color-accent-dark: #5B21B6;
     --color-danger: #EF4444;
+    --color-danger-rgb: 239, 68, 68;
     --color-danger-dark: #B91C1C;
+    --color-danger-light: #F87171;
+    --color-danger-mid: #DC2626;
+    --color-danger-shadow: #7f1414;
+    --color-accent-rgb: 91, 33, 182;
+    --color-accent-pink-rgb: 190, 24, 93;
     --color-ink: #1F2937;
     font-family: system-ui, sans-serif;
   }
@@ -75,7 +81,7 @@
   }
   #flipBtn { right: 10px; }
   #camBtn { right: 62px; }
-  #camBtn.off { background: linear-gradient(155deg, #F87171, var(--color-danger-dark)); }
+  #camBtn.off { background: linear-gradient(155deg, var(--color-danger-light), var(--color-danger-dark)); }
   #flipBtn:disabled { opacity: 0.4; cursor: not-allowed; }
   #camOffScreen {
     position: fixed;
@@ -122,7 +128,7 @@
     color: #fff;
     text-align: center;
     padding: 32px;
-    background: linear-gradient(165deg, rgba(91,33,182,0.90), rgba(190,24,93,0.78));
+    background: linear-gradient(165deg, rgba(var(--color-accent-rgb),0.90), rgba(var(--color-accent-pink-rgb),0.78));
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
   }
@@ -133,8 +139,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(155deg, #F87171, #DC2626);
-    box-shadow: 0 4px 0 #7f1414, 0 6px 14px rgba(0,0,0,0.35);
+    background: linear-gradient(155deg, var(--color-danger-light), var(--color-danger-mid));
+    box-shadow: 0 4px 0 var(--color-danger-shadow), 0 6px 14px rgba(0,0,0,0.35);
   }
   #retry p { margin: 0; font-size: 15px; font-family: system-ui, sans-serif; line-height: 1.6; max-width: 300px; color: rgba(255,255,255,0.8); }
   #retry button, #titleScreen button, #tutorialScreen button {
@@ -195,14 +201,14 @@
     border: 1px solid rgba(255,255,255,0.7);
   }
   #recordBtn.recording {
-    background: linear-gradient(155deg, #F87171, #DC2626);
+    background: linear-gradient(155deg, var(--color-danger-light), var(--color-danger-mid));
     color: #fff;
-    box-shadow: 0 4px 0 #7f1414, 0 0 16px 4px rgba(239,68,68,0.55);
+    box-shadow: 0 4px 0 var(--color-danger-shadow), 0 0 16px 4px rgba(var(--color-danger-rgb),0.55);
     animation: recPulse 1.4s ease-in-out infinite;
   }
   @keyframes recPulse {
-    0%, 100% { box-shadow: 0 4px 0 #7f1414, 0 0 0 0 rgba(239,68,68,0.55); }
-    50% { box-shadow: 0 4px 0 #7f1414, 0 0 16px 6px rgba(239,68,68,0.55); }
+    0%, 100% { box-shadow: 0 4px 0 var(--color-danger-shadow), 0 0 0 0 rgba(var(--color-danger-rgb),0.55); }
+    50% { box-shadow: 0 4px 0 var(--color-danger-shadow), 0 0 16px 6px rgba(var(--color-danger-rgb),0.55); }
   }
   @media (prefers-reduced-motion: reduce) {
     #recordBtn.recording { animation: none; }
@@ -218,7 +224,7 @@
     position: fixed;
     inset: 8px;
     border-radius: 44px;
-    box-shadow: 0 0 0 3px rgba(239,68,68,0.6), 0 0 22px 4px rgba(239,68,68,0.4);
+    box-shadow: 0 0 0 3px rgba(var(--color-danger-rgb),0.6), 0 0 22px 4px rgba(var(--color-danger-rgb),0.4);
     pointer-events: none;
     z-index: 9;
   }
@@ -231,7 +237,7 @@
     display: none;
     align-items: center;
     gap: 6px;
-    background: rgba(239,68,68,0.92);
+    background: rgba(var(--color-danger-rgb),0.92);
     color: #fff;
     font-family: 'Fredoka', system-ui, sans-serif;
     font-weight: 700;
@@ -307,11 +313,11 @@
     color: #fff;
     text-align: center;
     padding: 28px;
-    background: linear-gradient(165deg, rgba(91,33,182,0.90), rgba(190,24,93,0.78));
+    background: linear-gradient(165deg, rgba(var(--color-accent-rgb),0.90), rgba(var(--color-accent-pink-rgb),0.78));
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
   }
-  #titleScreen h1, #tutorialScreen h1 { margin: 0; font-size: 24px; font-weight: 700; }
+  #titleScreen h1, #tutorialScreen h1 { margin: 0; font-size: 24px; font-weight: 700; font-family: 'Fredoka', system-ui, sans-serif; }
   #titleScreen .rareHint { font-size: 13px; font-weight: 600; color: #FDE68A; }
   #titleScreen p, #tutorialScreen p {
     margin: 0;
