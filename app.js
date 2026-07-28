@@ -71,10 +71,21 @@ function updateBackgroundInert() {
   bottomBar.inert = blocked;
 }
 
+// pushed onto history so the browser/hardware back button returns to the
+// title screen in-app instead of navigating away (which was serving a stale
+// cached copy of the page). suppressPopstate skips our own history.back() call.
+let tutorialPushed = false;
+let suppressPopstate = false;
+
 function goToPlay() {
   titleScreen.style.display = 'none';
   tutorialScreen.style.display = 'none';
   updateBackgroundInert();
+  if (tutorialPushed) {
+    tutorialPushed = false;
+    suppressPopstate = true;
+    history.back();
+  }
   if (!trackingStarted) startCamera();
 }
 
@@ -84,6 +95,17 @@ document.getElementById('howToPlayBtn').addEventListener('click', () => {
   titleScreen.style.display = 'none';
   tutorialScreen.style.display = 'flex';
   updateBackgroundInert();
+  history.pushState({ screen: 'tutorial' }, '');
+  tutorialPushed = true;
+});
+window.addEventListener('popstate', () => {
+  if (suppressPopstate) { suppressPopstate = false; return; }
+  if (tutorialPushed) {
+    tutorialPushed = false;
+    tutorialScreen.style.display = 'none';
+    titleScreen.style.display = 'flex';
+    updateBackgroundInert();
+  }
 });
 updateBackgroundInert();
 document.getElementById('playBtn').focus();
