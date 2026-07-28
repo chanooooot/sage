@@ -31,6 +31,7 @@
     --paper-bg: #FDFBF7;
     --ink: #2D2D2D;
     --marker-red: #FF4D4D;
+    --postit-yellow: #FFF9C4;
     font-family: system-ui, sans-serif;
   }
   html, body {
@@ -330,7 +331,19 @@
   }
   #titleScreen h1, #tutorialScreen h1 { margin: 0; font-size: 24px; font-weight: 700; font-family: 'Fredoka', system-ui, sans-serif; }
   #titleScreen .squiggle { display: block; margin: -18px auto 0; }
-  #titleScreen .rareHint { font-size: 13px; font-weight: 700; color: var(--marker-red); }
+  #titleScreen .tagline { font-family: 'Fredoka', system-ui, sans-serif; }
+  #titleScreen .rareHint {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--postit-yellow);
+    border: 2px solid var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+    border-radius: 4px 10px 4px 10px;
+    padding: 6px 14px;
+    transform: rotate(2deg);
+  }
   #titleScreen p, #tutorialScreen p {
     margin: 0;
     font-size: 15px;
@@ -380,7 +393,7 @@
   <div id="titleScreen" role="dialog" aria-modal="true" aria-labelledby="titleText">
     <h1 id="titleText">AirDoodle</h1>
     <svg class="squiggle" width="120" height="14" viewBox="0 0 120 14" aria-hidden="true"><path d="M2 8 Q 18 2, 32 8 T 62 8 T 92 8 T 118 8" fill="none" stroke="#2D2D2D" stroke-width="3" stroke-linecap="round"/></svg>
-    <p>Draw in the air. Bring it to life.</p>
+    <p class="tagline">Draw in the air. Bring it to life.</p>
     <p class="rareHint">✨ Keep an eye out for rare creatures!</p>
     <button id="playBtn">Play</button>
     <button id="howToPlayBtn">How to Play</button>
