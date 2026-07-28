@@ -44,7 +44,7 @@
     start_url: '.',
     display: 'standalone',
     background_color: '#000000',
-    theme_color: '#7C3AED',
+    theme_color: '#FDFBF7',
     icons: [{ src: dataUrl, sizes: '192x192', type: 'image/png' }]
   };
   const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });

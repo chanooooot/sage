@@ -9,7 +9,7 @@
 <link rel="manifest" id="manifestLink" href="">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="AirDoodle">
-<meta name="theme-color" content="#7C3AED">
+<meta name="theme-color" content="#FDFBF7">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
@@ -28,6 +28,9 @@
     --color-accent-rgb: 91, 33, 182;
     --color-accent-pink-rgb: 190, 24, 93;
     --color-ink: #1F2937;
+    --paper-bg: #FDFBF7;
+    --ink: #2D2D2D;
+    --marker-red: #FF4D4D;
     font-family: system-ui, sans-serif;
   }
   html, body {
@@ -57,8 +60,8 @@
     transition: transform 120ms ease-out, box-shadow 120ms ease-out, opacity 120ms ease-out;
   }
   button:active {
-    transform: scale(0.93);
-    box-shadow: 0 1px 0 rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.25) !important;
+    transform: translate(3px, 3px) scale(0.98) !important;
+    box-shadow: none !important;
   }
   @media (prefers-reduced-motion: reduce) {
     button { transition: none; }
@@ -72,9 +75,9 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    border: none;
-    background: linear-gradient(155deg, #fff, #f0f0f0);
-    box-shadow: 0 4px 0 rgba(0,0,0,0.15), 0 3px 8px rgba(0,0,0,0.3);
+    border: 2.5px solid var(--ink);
+    background: #fff;
+    box-shadow: 3px 3px 0 var(--ink);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -92,20 +95,22 @@
     align-items: center;
     justify-content: center;
     gap: 16px;
-    background: linear-gradient(165deg, #3B2A5C, #5B215B);
+    background: var(--paper-bg);
   }
   #camOffScreen.show { display: flex; }
   #camOffScreen .box {
     width: 64px;
     height: 64px;
-    border-radius: 20px;
+    border-radius: 16px 22px 18px 24px;
+    border: 3px solid var(--ink);
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(155deg, #A78BFA, var(--color-accent));
-    box-shadow: 0 4px 0 var(--color-accent-dark), 0 6px 14px rgba(0,0,0,0.35);
+    box-shadow: 4px 4px 0 var(--ink);
+    transform: rotate(-2deg);
   }
-  #camOffScreen p { margin: 0; font-family: system-ui, sans-serif; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.8); }
+  #camOffScreen p { margin: 0; font-family: system-ui, sans-serif; font-size: 15px; font-weight: 600; color: var(--ink); }
   #fps {
     position: fixed;
     top: 8px;
@@ -125,34 +130,36 @@
     align-items: center;
     justify-content: center;
     gap: 22px;
-    color: #fff;
+    color: var(--ink);
     text-align: center;
     padding: 32px;
-    background: linear-gradient(165deg, rgba(var(--color-accent-rgb),0.90), rgba(var(--color-accent-pink-rgb),0.78));
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
+    background: var(--paper-bg);
   }
   #retry .box {
     width: 64px;
     height: 64px;
-    border-radius: 20px;
+    border-radius: 16px 22px 18px 24px;
+    border: 3px solid var(--ink);
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(155deg, var(--color-danger-light), var(--color-danger-mid));
-    box-shadow: 0 4px 0 var(--color-danger-shadow), 0 6px 14px rgba(0,0,0,0.35);
+    box-shadow: 4px 4px 0 var(--ink);
+    transform: rotate(2deg);
   }
-  #retry p { margin: 0; font-size: 15px; font-family: system-ui, sans-serif; line-height: 1.6; max-width: 300px; color: rgba(255,255,255,0.8); }
+  #retry p { margin: 0; font-size: 15px; font-family: system-ui, sans-serif; line-height: 1.6; max-width: 300px; color: var(--ink); }
   #retry button, #titleScreen button, #tutorialScreen button {
     padding: 16px 38px;
     font-size: 17px;
     font-weight: 600;
-    border-radius: 20px;
-    border: none;
+    border-radius: 18px 24px 20px 26px;
+    border: 3px solid var(--ink);
     background: linear-gradient(155deg, #FF9A4D, var(--color-primary));
     color: #fff;
-    box-shadow: 0 5px 0 var(--color-primary-dark), 0 8px 18px rgba(0,0,0,0.35);
+    box-shadow: 4px 4px 0 var(--ink);
+    transform: rotate(-1deg);
   }
+  #retry button:active, #titleScreen button:active, #tutorialScreen button:active { transform: translate(3px, 3px) scale(0.98) !important; }
   #bottomBar {
     position: fixed;
     left: 0; right: 0;
@@ -171,17 +178,19 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    border-radius: 22px;
-    border: none;
-    background: linear-gradient(155deg, #fff, #f5f5f5);
-    color: var(--color-ink);
-    box-shadow: 0 4px 0 rgba(0,0,0,0.15), 0 3px 8px rgba(0,0,0,0.25);
+    border-radius: 16px 20px 18px 22px;
+    border: 2.5px solid var(--ink);
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 3px;
   }
+  #bottomBar button:nth-child(odd) { transform: rotate(-1deg); }
+  #bottomBar button:nth-child(even) { transform: rotate(1deg); }
   #bottomBar button .icon {
     display: flex;
     align-items: center;
@@ -190,7 +199,6 @@
   #aliveBtn {
     background: linear-gradient(155deg, #A78BFA, var(--color-accent));
     color: #fff;
-    box-shadow: 0 4px 0 var(--color-accent-dark), 0 3px 8px rgba(0,0,0,0.3);
   }
   #colorSwatch {
     display: inline-block;
@@ -203,12 +211,12 @@
   #recordBtn.recording {
     background: linear-gradient(155deg, var(--color-danger-light), var(--color-danger-mid));
     color: #fff;
-    box-shadow: 0 4px 0 var(--color-danger-shadow), 0 0 16px 4px rgba(var(--color-danger-rgb),0.55);
+    box-shadow: 3px 3px 0 var(--ink), 0 0 16px 4px rgba(var(--color-danger-rgb),0.55);
     animation: recPulse 1.4s ease-in-out infinite;
   }
   @keyframes recPulse {
-    0%, 100% { box-shadow: 0 4px 0 var(--color-danger-shadow), 0 0 0 0 rgba(var(--color-danger-rgb),0.55); }
-    50% { box-shadow: 0 4px 0 var(--color-danger-shadow), 0 0 16px 6px rgba(var(--color-danger-rgb),0.55); }
+    0%, 100% { box-shadow: 3px 3px 0 var(--ink), 0 0 0 0 rgba(var(--color-danger-rgb),0.55); }
+    50% { box-shadow: 3px 3px 0 var(--ink), 0 0 16px 6px rgba(var(--color-danger-rgb),0.55); }
   }
   @media (prefers-reduced-motion: reduce) {
     #recordBtn.recording { animation: none; }
@@ -232,18 +240,20 @@
     position: fixed;
     top: max(58px, calc(env(safe-area-inset-top) + 48px));
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) rotate(-1deg);
     z-index: 10;
     display: none;
     align-items: center;
     gap: 6px;
     background: rgba(var(--color-danger-rgb),0.92);
+    border: 2.5px solid var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
     color: #fff;
     font-family: 'Fredoka', system-ui, sans-serif;
     font-weight: 700;
     font-size: 13px;
     padding: 6px 12px;
-    border-radius: 999px;
+    border-radius: 14px 18px 16px 20px;
   }
   #recTimer.show { display: flex; }
   #recTimer .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
@@ -251,15 +261,17 @@
     position: fixed;
     left: 50%;
     bottom: 90px;
-    transform: translateX(-50%);
+    transform: translateX(-50%) rotate(1deg);
     z-index: 9;
     display: none;
     align-items: center;
     gap: 6px;
     padding: 8px 16px;
-    border-radius: 16px;
-    background: rgba(0,0,0,0.55);
-    color: #fff;
+    border-radius: 14px 18px 16px 20px;
+    border: 2.5px solid var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    background: var(--paper-bg);
+    color: var(--ink);
     font-size: 14px;
     font-weight: 600;
     pointer-events: none;
@@ -276,15 +288,16 @@
     position: fixed;
     left: 50%;
     top: max(58px, calc(env(safe-area-inset-top) + 48px));
-    transform: translateX(-50%) translateY(-10px);
+    transform: translateX(-50%) translateY(-10px) rotate(-1deg);
     z-index: 11;
     display: none;
     align-items: center;
     gap: 6px;
     padding: 8px 16px;
-    border-radius: 16px;
+    border-radius: 14px 18px 16px 20px;
+    border: 2.5px solid var(--ink);
     background: linear-gradient(155deg, #A78BFA, var(--color-accent));
-    box-shadow: 0 4px 0 var(--color-accent-dark), 0 3px 10px rgba(0,0,0,0.3);
+    box-shadow: 3px 3px 0 var(--ink);
     color: #fff;
     font-family: 'Fredoka', system-ui, sans-serif;
     font-size: 14px;
@@ -296,7 +309,7 @@
   #specialToast.show {
     display: flex;
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(-50%) translateY(0) rotate(-1deg);
   }
   @media (prefers-reduced-motion: reduce) {
     #idleHint.show { animation: none; opacity: 0.9; }
@@ -310,22 +323,21 @@
     align-items: center;
     justify-content: center;
     gap: 26px;
-    color: #fff;
+    color: var(--ink);
     text-align: center;
     padding: 28px;
-    background: linear-gradient(165deg, rgba(var(--color-accent-rgb),0.90), rgba(var(--color-accent-pink-rgb),0.78));
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
+    background: var(--paper-bg);
   }
   #titleScreen h1, #tutorialScreen h1 { margin: 0; font-size: 24px; font-weight: 700; font-family: 'Fredoka', system-ui, sans-serif; }
-  #titleScreen .rareHint { font-size: 13px; font-weight: 600; color: #FDE68A; }
+  #titleScreen .squiggle { display: block; margin: -18px auto 0; }
+  #titleScreen .rareHint { font-size: 13px; font-weight: 700; color: var(--marker-red); }
   #titleScreen p, #tutorialScreen p {
     margin: 0;
     font-size: 15px;
     font-family: system-ui, sans-serif;
     line-height: 1.6;
     max-width: 300px;
-    color: rgba(255,255,255,0.8);
+    color: rgba(45,45,45,0.75);
     text-wrap: pretty;
   }
   #tutorialScreen .steps { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 300px; }
@@ -340,8 +352,10 @@
     justify-content: center;
     font-weight: 700;
     font-size: 15px;
-    background: rgba(255,255,255,0.18);
-    border: 1px solid rgba(255,255,255,0.35);
+    background: var(--paper-bg);
+    border: 2.5px solid var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+    color: var(--ink);
   }
   #tutorialScreen .step .emoji { flex: none; font-size: 26px; }
   #tutorialScreen .step p { margin: 0; font-size: 14px; max-width: none; }
@@ -361,10 +375,11 @@
     <button id="clearBtn"><span class="icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#1F2937" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6 H16"/><path d="M7 6 V4 a1 1 0 0 1 1-1 h4 a1 1 0 0 1 1 1 v2"/><path d="M6 6 L6.8 17 a1.5 1.5 0 0 0 1.5 1.4 h3.4 a1.5 1.5 0 0 0 1.5-1.4 L14 6"/></svg></span>Clear</button>
   </div>
   <div id="recTimer"><span class="dot"></span><span id="recTimerText">0:00</span></div>
-  <div id="idleHint"><svg width="14" height="14" viewBox="0 0 20 20" fill="#fff"><circle cx="6" cy="6" r="3.5"/><circle cx="14" cy="14" r="3.5" fill-opacity="0.6"/></svg>Pinch to draw</div>
+  <div id="idleHint"><svg width="14" height="14" viewBox="0 0 20 20" fill="#2D2D2D"><circle cx="6" cy="6" r="3.5"/><circle cx="14" cy="14" r="3.5" fill-opacity="0.6"/></svg>Pinch to draw</div>
   <div id="specialToast">✨ Special creature!</div>
   <div id="titleScreen" role="dialog" aria-modal="true" aria-labelledby="titleText">
     <h1 id="titleText">AirDoodle</h1>
+    <svg class="squiggle" width="120" height="14" viewBox="0 0 120 14" aria-hidden="true"><path d="M2 8 Q 18 2, 32 8 T 62 8 T 92 8 T 118 8" fill="none" stroke="#2D2D2D" stroke-width="3" stroke-linecap="round"/></svg>
     <p>Draw in the air. Bring it to life.</p>
     <p class="rareHint">✨ Keep an eye out for rare creatures!</p>
     <button id="playBtn">Play</button>
@@ -387,6 +402,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="app.js?v=43"></script>
+  <script src="app.js?v=44"></script>
 </body>
 </html>
