@@ -312,6 +312,7 @@
     backdrop-filter: blur(6px);
   }
   #titleScreen h1, #tutorialScreen h1 { margin: 0; font-size: 24px; font-weight: 700; }
+  #titleScreen .rareHint { font-size: 13px; font-weight: 600; color: #FDE68A; }
   #titleScreen p, #tutorialScreen p {
     margin: 0;
     font-size: 15px;
@@ -359,6 +360,7 @@
   <div id="titleScreen" role="dialog" aria-modal="true" aria-labelledby="titleText">
     <h1 id="titleText">AirDoodle</h1>
     <p>Draw in the air. Bring it to life.</p>
+    <p class="rareHint">✨ Keep an eye out for rare creatures!</p>
     <button id="playBtn">Play</button>
     <button id="howToPlayBtn">How to Play</button>
   </div>
@@ -379,6 +381,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="app.js?v=41"></script>
+  <script src="app.js?v=42"></script>
 </body>
 </html>
