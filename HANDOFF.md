@@ -1,6 +1,6 @@
 # HANDOFF — AirDoodle
 
-**Last updated:** 2026-07-29 (title/tutorial screen split, full hand-drawn sketch restyle)
+**Last updated:** 2026-08-09 (motion tracking reliability pass)
 **Live URL:** https://chanooooot.github.io/airdoodle/ (repo: chanooooot/airdoodle, public — renamed from `sage` today; old `/sage/` links redirect via GitHub for a while, not forever)
 **App name:** AirDoodle (renamed from AirToon — title, share sheet, filenames, all docs updated)
 
@@ -11,12 +11,30 @@ pass (plan: see git log around commits `033117b`..`8d234d4`; review plan file if
 present locally: `C:\Users\chano\.claude\plans\atomic-watching-dewdrop.md`), then a
 rename + home-screen-icon pass on top.
 
+## Motion tracking reliability pass (2026-08-09)
+
+Implemented locally; not yet deployed or verified on Ham's phone.
+
+- MediaPipe results are numbered and gesture/physics processing runs once per
+  fresh result. Pinch voting, smoothing, and stroke insertion cannot repeat on
+  cached landmarks.
+- Brief no-hand results stop points and move hand bodies offscreen immediately,
+  while preserving an active stroke for 120ms. A return within that window resumes
+  it; a longer loss clears the stroke and gesture votes.
+- Camera-off clears landmarks, gesture state, timers, and hand bodies. Frame sends
+  wait for a live, ready video stream; late camera-off errors stay quiet.
+- ?debug=1 shows render FPS, MediaPipe-result FPS, sample age, normalized pinch
+  distance/state, dropout count, stroke count, and point count.
+
+Local checks passed: node --check app.js; own JS is 35,207 bytes (<50KB).
+Current cache version is app.js?v=45.
+
 ## What's built
 
 - **P0** Camera skeleton, mirrored full-screen, permission-denied retry screen
 - **P1** MediaPipe hand tracking (1 hand, lite model), fingertip/palm tracking, FPS counter (`?debug=1`)
 - **P2** Pinch-to-draw (hysteresis + 3-vote smoothing), multi-stroke, Undo (removes last stroke), Clear, stroke points capped at 2000 (drop-oldest, perf budget)
-- **P3** matter.js physics — creatures spawn at drawn position (not falling), circle body, breathe/wiggle/blink/hop, hand-body collisions with startle reaction, cap 3 creatures w/ 1.5s fade-out oldest
+- **P3** matter.js physics — creatures spawn at drawn position (not falling), circle body, breathe/wiggle/blink/hop, hand-body collisions with startle reaction, cap 5 creatures w/ 1.5s fade-out oldest
 - **P4** 15s recording (camera+canvas composite via MediaRecorder), Web Share API w/ download fallback, screenshot fallback if MediaRecorder unsupported. **Note:** a live countdown on the Record button was added then reverted per user request — button is plain `⏺ Record` / `⏹ Stop` again.
 - **P5** First-run instruction overlay (shown before camera opens, camera starts on tap), flex bottom bar w/ safe-area insets, friendlier camera-denied copy
 - **Extra (post-launch):** front/back camera flip toggle (🔄), camera on/off toggle (📷, privacy — fully stops tracks), birth effect (expanding color ring — was silently broken, now fixed + elastic wobble pop-in), fist-hold charge-up progress ring (makes the alive gesture legible), eyes/mouth tumble with body rotation instead of floating in screen space, experimental procedural smile, idle nudge hint after 4s of no drawing, active-draw-color swatch on Alive button, aria-labels on icon buttons, UI beautification pass (Fredoka/Nunito fonts, claymorphism-lite buttons, haptic feedback on Alive/Record, pulsing record button)
@@ -41,7 +59,8 @@ backlogged — only the actual blocker was fixed.
 
 ## Known issues / accepted limitations
 
-- Hand tracking drops fully when hand exits camera FOV (e.g. drawing near screen edges) — normal MediaPipe limitation, accepted, not fixed. Documented as a constraint, not a bug.
+- Hand tracking still drops when a hand exits camera FOV. A 120ms grace now avoids
+  splitting brief edge losses; longer losses deliberately end the stroke.
 - iOS Safari MediaRecorder — timeboxed test was done, confirmed working via user testing (if this regresses, screenshot fallback already in place, see `app.js` `startRecording()`).
 - Procedural smile (Tier 3.2 of the review) is explicitly experimental — it's live but not battle-tested on a wide variety of drawings. May look odd on abstract scribbles; watch for this and remove `app.js`'s "experimental: procedural smile" block if it doesn't read well.
 
@@ -127,6 +146,10 @@ been verified on Ham's phone yet.
 
 ## Next steps / open threads
 
+- **Run the motion reliability phone gate before further tuning:** baseline/fixed
+  tracking FPS (>=15), 20 pinch cycles, four-stroke smiley, edge-loss grace,
+  long-loss disconnect, camera off/on, five creatures, and recording. Use
+  ?debug=1; points must not increase faster than MediaPipe results.
 - **Nothing above has been tested on Ham's real phone yet.** Priority: verify FPS with 5 creatures (including while recording), Cam off/on, Flip, permission retry, backgrounding/return, and the new dialog/inert behavior doesn't trap focus somewhere unexpected.
 - **New from 2026-07-27 session, also unverified on phone:** the claymorphism visual pass (buttons/
   icons/camera-off screen/recording feedback), the 16-color palette, and the bonus special-creature

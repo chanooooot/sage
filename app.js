@@ -117,9 +117,10 @@ const camOffScreen = document.getElementById('camOffScreen');
 let cameraOn = true;
 camBtn.addEventListener('click', () => {
   if (cameraOn) {
+    cameraOn = false;
+    resetTrackingState();
     if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
     video.srcObject = null;
-    cameraOn = false;
     camBtn.innerHTML = PLAY_ICON;
     camBtn.classList.add('off');
     camBtn.setAttribute('aria-pressed', 'false');
@@ -151,9 +152,21 @@ function resizeCanvas() {
 }
 
 let lastResults = null;
+let resultSequence = 0;
+let processedResultSequence = 0;
+let lastResultTime = 0;
+let resultFrames = 0;
+let dropoutCount = 0;
+let handTracked = false;
+let handMissingSince = null;
+const TRACKING_GRACE_MS = 120;
 
 function onResults(results) {
+  if (!cameraOn) return;
   lastResults = results;
+  resultSequence++;
+  lastResultTime = performance.now();
+  resultFrames++;
 }
 
 // --- Drawing state (P2) ---
@@ -213,6 +226,31 @@ function addPoint(lm) {
     total--;
     if (!oldest.points.length && oldest !== currentStroke) strokes.shift();
   }
+}
+
+function hideHandBodies() {
+  Matter.Body.setPosition(fingerBody, { x: -1000, y: -1000 });
+  Matter.Body.setPosition(palmBody, { x: -1000, y: -1000 });
+}
+
+function clearGestureState() {
+  pinchVotes = [];
+  pinching = false;
+  currentStroke = null;
+  fistSince = null;
+  fistTriggered = false;
+}
+
+function resetTrackingState() {
+  lastResults = null;
+  processedResultSequence = resultSequence;
+  lastResultTime = 0;
+  resultFrames = 0;
+  handTracked = false;
+  handMissingSince = null;
+  lastNorm = 0;
+  clearGestureState();
+  hideHandBodies();
 }
 
 function drawStrokes() {
@@ -382,7 +420,7 @@ Matter.Events.on(engine, 'collisionStart', (evt) => {
 
 document.getElementById('aliveBtn').addEventListener('click', bringAlive);
 
-// fist-1s detection (alive trigger)
+// fist-0.6s detection (alive trigger)
 let fistSince = null;
 let fistTriggered = false;
 function fingerExtended(lm, tipIdx, pipIdx) {
@@ -704,14 +742,48 @@ function startHandTracking() {
 
   let handsBusy = false;
   function sendFrame() {
-    if (handsBusy) return;
+    if (handsBusy || !cameraOn || !video.srcObject || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
     handsBusy = true;
-    hands.send({ image: video }).finally(() => { handsBusy = false; });
+    hands.send({ image: video })
+      .catch((err) => { if (cameraOn) console.error(err); })
+      .finally(() => { handsBusy = false; });
   }
 
-  let frames = 0;
+  let renderFrames = 0;
   let lastFpsTime = performance.now();
   const colorSwatch = document.getElementById('colorSwatch');
+
+  function processFreshResult() {
+    if (processedResultSequence === resultSequence) return;
+    processedResultSequence = resultSequence;
+    const lm = lastResults && lastResults.multiHandLandmarks[0];
+
+    if (!lm) {
+      if (handTracked) dropoutCount++;
+      handTracked = false;
+      if (handMissingSince === null) handMissingSince = lastResultTime;
+      fistSince = null;
+      fistTriggered = false;
+      hideHandBodies();
+      return;
+    }
+
+    handTracked = true;
+    handMissingSince = null;
+    updatePinch(lm);
+    addPoint(lm);
+    if (pinching) {
+      fistSince = null;
+      fistTriggered = false;
+    } else {
+      checkFist(lm);
+    }
+
+    const tipX = lm[8].x * canvas.width, tipY = lm[8].y * canvas.height;
+    const palmX = (lm[0].x + lm[9].x) / 2 * canvas.width, palmY = (lm[0].y + lm[9].y) / 2 * canvas.height;
+    Matter.Body.setPosition(fingerBody, { x: tipX, y: tipY });
+    Matter.Body.setPosition(palmBody, { x: palmX, y: palmY });
+  }
 
   function render() {
     resizeCanvas();
@@ -719,6 +791,12 @@ function startHandTracking() {
     sendFrame();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     colorSwatch.style.background = currentColor || 'transparent';
+    processFreshResult();
+
+    const now = performance.now();
+    if (handMissingSince !== null && now - handMissingSince >= TRACKING_GRACE_MS) {
+      clearGestureState();
+    }
 
     if (!strokes.length && !creatures.length && cameraStartTime && performance.now() - cameraStartTime > 4000) {
       idleHintEl.classList.add('show');
@@ -726,45 +804,29 @@ function startHandTracking() {
       idleHintEl.classList.remove('show');
     }
 
-    if (lastResults && lastResults.multiHandLandmarks.length) {
+    if (debug && lastResults && lastResults.multiHandLandmarks.length) {
       const lm = lastResults.multiHandLandmarks[0];
-      updatePinch(lm);
-      addPoint(lm);
-      if (pinching) {
-        fistSince = null;
-        fistTriggered = false;
-      } else {
-        checkFist(lm);
-      }
-
       const tipX = lm[8].x * canvas.width, tipY = lm[8].y * canvas.height;
-      const palmX = (lm[0].x + lm[9].x) / 2 * canvas.width, palmY = (lm[0].y + lm[9].y) / 2 * canvas.height;
-      Matter.Body.setPosition(fingerBody, { x: tipX, y: tipY });
-      Matter.Body.setPosition(palmBody, { x: palmX, y: palmY });
-
-      if (debug) {
-        ctx.fillStyle = pinching ? '#0f0' : '#0ff';
-        ctx.beginPath();
-        ctx.arc(tipX, tipY, 10, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    } else {
-      pinchVotes = [];
-      pinching = false;
-      currentStroke = null;
-      Matter.Body.setPosition(fingerBody, { x: -1000, y: -1000 });
-      Matter.Body.setPosition(palmBody, { x: -1000, y: -1000 });
+      ctx.fillStyle = pinching ? '#0f0' : '#0ff';
+      ctx.beginPath();
+      ctx.arc(tipX, tipY, 10, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     drawStrokes();
     drawCreatures();
     if (recording) { compositeFrame(); updateRecTimer(); }
 
-    frames++;
-    const now = performance.now();
+    renderFrames++;
     if (now - lastFpsTime >= 1000) {
-      if (debug) fpsEl.textContent = `${frames} fps | norm ${lastNorm.toFixed(2)} | pinch ${pinching} | fist ${fistSince ? ((performance.now() - fistSince) / 1000).toFixed(1) : '-'}`;
-      frames = 0;
+      if (debug) {
+        const elapsed = now - lastFpsTime;
+        const pointCount = strokes.reduce((sum, stroke) => sum + stroke.points.length, 0);
+        const sampleAge = lastResultTime ? `${Math.round(now - lastResultTime)}ms` : '-';
+        fpsEl.textContent = `render ${Math.round(renderFrames * 1000 / elapsed)} | tracking ${Math.round(resultFrames * 1000 / elapsed)} | age ${sampleAge}\n+norm ${lastNorm.toFixed(2)} | pinch ${pinching} | drops ${dropoutCount}\n+strokes ${strokes.length} | points ${pointCount}`;
+      }
+      renderFrames = 0;
+      resultFrames = 0;
       lastFpsTime = now;
     }
 
