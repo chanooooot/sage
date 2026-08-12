@@ -323,9 +323,14 @@ let specialToastTimer = null;
 
 function bboxOfStrokes() {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const s of strokes) for (const p of s.points) {
-    minX = Math.min(minX, p.x); minY = Math.min(minY, p.y);
-    maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y);
+  // skip 1-point strokes (quick pinch blips) — they're never drawn, so they'd
+  // inflate the sprite and body radius around art nobody can see
+  for (const s of strokes) {
+    if (s.points.length < 2) continue;
+    for (const p of s.points) {
+      minX = Math.min(minX, p.x); minY = Math.min(minY, p.y);
+      maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y);
+    }
   }
   return { minX, minY, maxX, maxY };
 }
@@ -435,20 +440,7 @@ function checkFist(lm) {
   const now = performance.now();
   if (fist) {
     if (fistSince === null) fistSince = now;
-    const progress = Math.min(1, (now - fistSince) / FIST_HOLD_MS);
-    if (progress > 0 && progress < 1) {
-      const cx = (lm[0].x + lm[9].x) / 2 * canvas.width;
-      const cy = (lm[0].y + lm[9].y) / 2 * canvas.height;
-      ctx.save();
-      ctx.strokeStyle = '#7C3AED';
-      ctx.lineWidth = 5;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.arc(cx, cy, 50, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
-    if (!fistTriggered && progress >= 1) {
+    if (!fistTriggered && now - fistSince >= FIST_HOLD_MS) {
       fistTriggered = true;
       bringAlive();
     }
@@ -456,6 +448,26 @@ function checkFist(lm) {
     fistSince = null;
     fistTriggered = false;
   }
+}
+
+// painted from the render loop, not from checkFist: the canvas is cleared every
+// rAF but results only arrive at tracking rate, so drawing it here would strobe
+function drawFistRing() {
+  if (fistSince === null || !lastResults) return;
+  const lm = lastResults.multiHandLandmarks[0];
+  if (!lm) return;
+  const progress = (performance.now() - fistSince) / FIST_HOLD_MS;
+  if (progress <= 0 || progress >= 1) return;
+  const cx = (lm[0].x + lm[9].x) / 2 * canvas.width;
+  const cy = (lm[0].y + lm[9].y) / 2 * canvas.height;
+  ctx.save();
+  ctx.strokeStyle = '#7C3AED';
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 50, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function easeOut(t) {
@@ -815,6 +827,7 @@ function startHandTracking() {
 
     drawStrokes();
     drawCreatures();
+    drawFistRing();
     if (recording) { compositeFrame(); updateRecTimer(); }
 
     renderFrames++;
@@ -856,13 +869,22 @@ function drawWatermark(c, w, h) {
   c.restore();
 }
 
+// camera + overlay composited. mirror only when the screen is mirrored (front
+// camera) — the back camera renders unflipped, so flipping here would save a
+// video that's a mirror of what the user just watched.
+function drawScene(c, w, h) {
+  c.save();
+  if (document.body.classList.contains('mirrored')) {
+    c.translate(w, 0);
+    c.scale(-1, 1);
+  }
+  c.drawImage(video, 0, 0, w, h);
+  c.drawImage(canvas, 0, 0, w, h);
+  c.restore();
+}
+
 function compositeFrame() {
-  rctx.save();
-  rctx.translate(recCanvas.width, 0);
-  rctx.scale(-1, 1);
-  rctx.drawImage(video, 0, 0, recCanvas.width, recCanvas.height);
-  rctx.drawImage(canvas, 0, 0, recCanvas.width, recCanvas.height);
-  rctx.restore();
+  drawScene(rctx, recCanvas.width, recCanvas.height);
   drawWatermark(rctx, recCanvas.width, recCanvas.height); // unmirrored, drawn outside the flip
 }
 
@@ -872,7 +894,8 @@ const STOP_ICON = '<span class="icon"><svg width="16" height="16" viewBox="0 0 2
 function flashRecordBtn(text) {
   const prevHTML = recordBtn.innerHTML;
   recordBtn.textContent = text;
-  setTimeout(() => { recordBtn.innerHTML = prevHTML; }, 2000);
+  // a new recording started inside the 2s window owns the button — don't stomp it
+  setTimeout(() => { if (!recording) recordBtn.innerHTML = prevHTML; }, 2000);
 }
 
 const recTimerEl = document.getElementById('recTimer');
@@ -895,7 +918,8 @@ function downloadBlob(blob, filename) {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  // revoking synchronously cancels the download on some WebKit builds
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 async function shareOrDownload(blob, filename) {
@@ -930,13 +954,7 @@ function startRecording() {
     // iOS/unsupported fallback: single screenshot, camera + drawing composited (not the transparent overlay alone)
     const shot = document.createElement('canvas');
     shot.width = canvas.width; shot.height = canvas.height;
-    const sctx = shot.getContext('2d');
-    sctx.save();
-    sctx.translate(shot.width, 0);
-    sctx.scale(-1, 1);
-    sctx.drawImage(video, 0, 0, shot.width, shot.height);
-    sctx.drawImage(canvas, 0, 0, shot.width, shot.height);
-    sctx.restore();
+    drawScene(shot.getContext('2d'), shot.width, shot.height);
     shot.toBlob((blob) => shareOrDownload(blob, 'airdoodle.png'), 'image/png');
     return;
   }
