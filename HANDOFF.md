@@ -1,6 +1,6 @@
 # HANDOFF — AirDoodle
 
-**Last updated:** 2026-08-09 (motion tracking reliability pass)
+**Last updated:** 2026-08-12 (review fix pass — verified on Ham's phone)
 **Live URL:** https://chanooooot.github.io/airdoodle/ (repo: chanooooot/airdoodle, public — renamed from `sage` today; old `/sage/` links redirect via GitHub for a while, not forever)
 **App name:** AirDoodle (renamed from AirToon — title, share sheet, filenames, all docs updated)
 
@@ -11,9 +11,53 @@ pass (plan: see git log around commits `033117b`..`8d234d4`; review plan file if
 present locally: `C:\Users\chano\.claude\plans\atomic-watching-dewdrop.md`), then a
 rename + home-screen-icon pass on top.
 
+## Review fix pass (2026-08-12)
+
+An outsider end-to-end review of `app.js` (`/scrutinize`, whole file, not a diff) found
+five defects. All five are fixed, deployed, and **verified on Ham's phone**. Cache
+version is now `app.js?v=46`.
+
+- **Recordings were mirrored regardless of camera.** `compositeFrame()` and the
+  MediaRecorder-unavailable screenshot both applied `translate(w,0); scale(-1,1)`
+  unconditionally, but the display only mirrors via `body.mirrored`, which
+  `flipCamera()` removes on the back camera. Back-camera captures were saved as a
+  mirror of what the user watched. Both paths now go through one `drawScene(c,w,h)`
+  helper that flips only when `body.mirrored` is set. Front and back both confirmed
+  correct on device.
+- **The fist-hold progress ring strobed.** `f56c23c` moved gesture handling into
+  `processFreshResult()`, which correctly runs once per MediaPipe result — but it took
+  the ring's *drawing* with it. The canvas clears every `requestAnimationFrame` (~60Hz)
+  while results arrive at tracking rate (~15-25Hz), so the ring was painted on roughly
+  one frame in three, exactly during the 0.6s the user holds still waiting for feedback.
+  `checkFist()` is now detection-only; a new `drawFistRing()` paints from the render loop
+  after `drawCreatures()`, which also puts the ring above strokes/creatures instead of
+  under them. Trigger timing is unchanged.
+- **Stray 1-point strokes inflated the creature.** A pinch that opens on the very next
+  frame leaves a stroke with exactly one point. `drawStrokes()` and the sprite render
+  both skip those, but `bboxOfStrokes()` counted them — so the sprite canvas, the art
+  offset, and the Matter circle radius were all sized around a point nobody can see.
+  `bboxOfStrokes()` now applies the same `points.length < 2` skip as its two siblings.
+- **Record button reverted mid-recording.** `flashRecordBtn()` restored the pre-flash
+  `innerHTML` unconditionally after 2s, so starting a new recording inside that window
+  left the button reading "Record" while actually recording. Restore is now guarded on
+  `!recording`.
+- **Download fallback could cancel itself.** `downloadBlob()` revoked the object URL
+  synchronously after `a.click()`, which aborts the download on some WebKit builds —
+  and this is the iOS no-MediaRecorder path that SPEC §6 names as the accepted risk.
+  Revoke is now deferred 1s.
+
+Not fixed, deliberately: SPEC.md D7 still says the creature cap is 3. Code, CLAUDE.md,
+BUILD_PLAN.md and AGENTS.md all say 5. Doc drift only — SPEC's decision log is the stale
+one.
+
+Not verified: the iOS no-MediaRecorder screenshot path now routes through `drawScene()`.
+No device without MediaRecorder was available to exercise it.
+
 ## Motion tracking reliability pass (2026-08-09)
 
-Implemented locally; not yet deployed or verified on Ham's phone.
+Deployed. Its own checklist (below, under Next steps) has not been run end-to-end on
+Ham's phone; the 2026-08-12 pass above did re-test the fist gesture and both recording
+paths on device.
 
 - MediaPipe results are numbered and gesture/physics processing runs once per
   fresh result. Pinch voting, smoothing, and stroke insertion cannot repeat on
@@ -62,11 +106,13 @@ backlogged — only the actual blocker was fixed.
 - Hand tracking still drops when a hand exits camera FOV. A 120ms grace now avoids
   splitting brief edge losses; longer losses deliberately end the stroke.
 - iOS Safari MediaRecorder — timeboxed test was done, confirmed working via user testing (if this regresses, screenshot fallback already in place, see `app.js` `startRecording()`).
+- **SPEC.md D7 says the creature cap is 3. It is 5.** Code, CLAUDE.md, BUILD_PLAN.md and AGENTS.md agree on 5; only SPEC's decision log is stale. Don't "fix" the code to match SPEC.
+- The iOS no-MediaRecorder screenshot path shares `drawScene()` with the video composite as of 2026-08-12, but has not been exercised on a device without MediaRecorder.
 - Procedural smile (Tier 3.2 of the review) is explicitly experimental — it's live but not battle-tested on a wide variety of drawings. May look odd on abstract scribbles; watch for this and remove `app.js`'s "experimental: procedural smile" block if it doesn't read well.
 
 ## Cache-busting note
 
-`index.html` loads `app.js?v=N` — **bump the version number every time app.js changes** or GitHub Pages/mobile Safari caching will serve stale JS during testing. Currently at v44.
+`index.html` loads `app.js?v=N` — **bump the version number every time app.js changes** or GitHub Pages/mobile Safari caching will serve stale JS during testing. Currently at v46. (Dated sections above quote whatever version was current when they were written — this line is the canonical one.)
 
 ## Title screen + tutorial + full sketch restyle (2026-07-29)
 
